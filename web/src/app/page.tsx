@@ -11,6 +11,7 @@ import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-man
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
+import { PriceTickerBar } from "@/components/price-ticker-bar";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -255,6 +256,10 @@ export default function HomePage() {
     [selectedTicker, watchlist]
   );
 
+  const handleReorder = useCallback((reordered: WatchlistItem[]) => {
+    setWatchlist(reordered);
+  }, []);
+
   return (
     <TooltipProvider>
       <AppHeader />
@@ -266,6 +271,15 @@ export default function HomePage() {
           onSelect={setSelectedTicker}
           onAdd={handleAddTicker}
           onRemove={handleRemoveTicker}
+          onReorder={handleReorder}
+        />
+
+        {/* Price ticker bar — all watchlist quotes */}
+        <PriceTickerBar
+          quotes={quotes}
+          watchlist={watchlist.map((w) => ({ ticker: w.ticker, name: w.name }))}
+          selected={selectedTicker}
+          loading={quotesLoading}
         />
 
         {/* Controls: Ticker info + Quote + Date + Period */}
