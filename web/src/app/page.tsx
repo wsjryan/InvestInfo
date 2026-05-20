@@ -11,9 +11,11 @@ import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-man
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
+import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useQuotes } from "@/hooks/use-quotes";
+import { useAnalysis } from "@/hooks/use-analysis";
 
 // ─── Mock data per ticker ─────────────────────────────────────
 
@@ -219,7 +221,22 @@ export default function HomePage() {
   const [selectedTicker, setSelectedTicker] = useState("005930.KS");
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  const data = MOCK_DATA[selectedTicker] ?? MOCK_DATA["005930.KS"];
+  const mockData = MOCK_DATA[selectedTicker] ?? MOCK_DATA["005930.KS"];
+  const { data: liveData, loading: aiLoading, error: aiError, refresh: runAnalysis } = useAnalysis(selectedTicker);
+
+  // Use live data if available, otherwise mock
+  const data = liveData
+    ? {
+        ...mockData,
+        name: liveData.name ?? mockData.name,
+        verdict: liveData.verdict as any,
+        aiSummary: liveData.aiSummary as any,
+        macro: liveData.macro,
+        industry: liveData.industry,
+        stock: liveData.stock,
+        news: liveData.news ?? mockData.news,
+      }
+    : mockData;
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols);
@@ -261,9 +278,21 @@ export default function HomePage() {
             <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">{selectedTicker}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant={liveData ? "outline" : "default"}
+              onClick={runAnalysis}
+              disabled={aiLoading}
+              className="h-8 text-xs"
+            >
+              {aiLoading ? "Analyzing..." : liveData ? "Refresh AI" : "Run AI Analysis"}
+            </Button>
             <DatePicker value={selectedDate} onChange={setSelectedDate} />
             <PeriodTabs value={period} onChange={setPeriod} />
           </div>
+          {aiError && (
+            <p className="text-xs text-red-500">AI Error: {aiError}</p>
+          )}
         </div>
 
         {/* Verdict — Buy/Hold/Sell */}
