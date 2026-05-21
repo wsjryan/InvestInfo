@@ -83,6 +83,7 @@ export function WatchlistManager({
 }: WatchlistManagerProps) {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(0);
   const dragItem = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -91,7 +92,24 @@ export function WatchlistManager({
       !items.some((w) => w.ticker === s.ticker) &&
       (s.name.toLowerCase().includes(search.toLowerCase()) ||
         s.ticker.toLowerCase().includes(search.toLowerCase()))
-  );
+  ).slice(0, 20); // limit visible results
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIdx((prev) => Math.min(prev + 1, filteredSuggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIdx((prev) => Math.max(prev - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (filteredSuggestions.length > 0) {
+        onAdd(filteredSuggestions[highlightIdx]);
+        setSearch("");
+        setHighlightIdx(0);
+      }
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     dragItem.current = index;
@@ -189,10 +207,12 @@ export function WatchlistManager({
             <DialogDescription>Search and add stocks to your watchlist.</DialogDescription>
           </DialogHeader>
           <Input
-            placeholder="Search ticker or name..."
+            placeholder="Search ticker or name... (Enter to add)"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setHighlightIdx(0); }}
+            onKeyDown={handleSearchKeyDown}
             className="mb-3"
+            autoFocus
           />
           <div className="space-y-1 max-h-60 overflow-y-auto">
             {filteredSuggestions.length === 0 && (
@@ -200,14 +220,19 @@ export function WatchlistManager({
                 No results
               </p>
             )}
-            {filteredSuggestions.map((s) => (
+            {filteredSuggestions.map((s, idx) => (
               <button
                 key={s.ticker}
                 onClick={() => {
                   onAdd(s);
                   setSearch("");
+                  setHighlightIdx(0);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer"
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm cursor-pointer ${
+                  idx === highlightIdx
+                    ? "bg-slate-100 dark:bg-zinc-700"
+                    : "hover:bg-slate-50 dark:hover:bg-zinc-800"
+                }`}
               >
                 <span>
                   {s.name}{" "}
