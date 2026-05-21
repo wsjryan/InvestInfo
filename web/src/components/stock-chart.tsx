@@ -24,9 +24,9 @@ const RANGE_OPTIONS = [
   { label: "15min", range: "5d", interval: "15m" },
   { label: "1H", range: "1mo", interval: "1h" },
   { label: "1D", range: "3mo", interval: "1d" },
-  { label: "1D(6M)", range: "6mo", interval: "1d" },
   { label: "1D(1Y)", range: "1y", interval: "1d" },
   { label: "1W", range: "5y", interval: "1wk" },
+  { label: "1M", range: "max", interval: "1mo" },
 ];
 
 interface TooltipData {
