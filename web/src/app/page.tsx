@@ -243,7 +243,18 @@ function usePersistentWatchlist() {
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { watchlist, setWatchlist, user } = usePersistentWatchlist();
-  const [selectedTicker, setSelectedTicker] = useState("005930.KS");
+  const [selectedTicker, setSelectedTicker] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("investinfo_watchlist");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed[0].ticker;
+        } catch {}
+      }
+    }
+    return "005930.KS";
+  });
   const isMobile = useMediaQuery("(max-width: 640px)");
   const [lastUpdated] = useState(() => new Date());
 
