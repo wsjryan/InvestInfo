@@ -6,6 +6,7 @@ export interface AnalystSource {
   name: string;
   target: number;
   rating: string;
+  reason?: string;
   url?: string;
 }
 

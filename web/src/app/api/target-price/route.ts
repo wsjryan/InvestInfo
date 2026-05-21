@@ -106,7 +106,7 @@ Return ONLY a JSON object:
   "recommendationMean": <1.0-5.0>,
   "reasoning": "<Korean, structured as: [매크로] 1-2문장 거시경제 영향 → [산업] 1-2문장 산업/섹터 전망 → [종목] 1-2문장 개별 종목 요인 → [총평] 1문장 종합 판단>",
   "sources": [
-    {"name": "<firm>", "target": <price>, "rating": "buy"|"hold"|"sell", "url": "<Google News search URL for this specific analyst report, format: https://www.google.com/search?q=FIRM+TICKER+target+price+rating+2026&tbm=nws>"}
+    {"name": "<firm>", "target": <price>, "rating": "buy"|"hold"|"sell", "reason": "<1 sentence in Korean: why this firm set this target>", "url": "<Google News search URL: https://www.google.com/search?q=FIRM+TICKER+target+price+2026&tbm=nws>"}
   ]
 }
 

@@ -208,16 +208,23 @@ export function TargetPriceCard({
             <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-1.5">Analyst Estimates</div>
             <div className="space-y-1">
               {sources.map((s: AnalystSource, i: number) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <SourceLink name={s.name} url={s.url} />
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${ratingColor(s.rating)}`}>
-                      {s.rating.toUpperCase()}
-                    </span>
-                    <span className="font-medium text-slate-700 dark:text-zinc-300 w-20 text-right">
-                      {formatPrice(s.target, currency)}
-                    </span>
+                <div key={i} className="group">
+                  <div className="flex items-center justify-between text-xs">
+                    <SourceLink name={s.name} url={s.url} />
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${ratingColor(s.rating)}`}>
+                        {s.rating.toUpperCase()}
+                      </span>
+                      <span className="font-medium text-slate-700 dark:text-zinc-300 w-20 text-right">
+                        {formatPrice(s.target, currency)}
+                      </span>
+                    </div>
                   </div>
+                  {s.reason && (
+                    <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5 pl-1 leading-snug">
+                      {s.reason}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
