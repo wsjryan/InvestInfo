@@ -94,23 +94,28 @@ export async function GET(req: NextRequest) {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are a financial analyst. For the stock "${name}" (ticker: ${symbol}), provide the current Wall Street analyst consensus as of today. ${currentPriceStr}
+            text: `You are a senior financial analyst. Analyze "${name}" (ticker: ${symbol}). ${currentPriceStr}
 
-Return ONLY a JSON object with these fields (no explanation):
+Return ONLY a JSON object:
 {
-  "targetHigh": <highest analyst target price in USD or KRW>,
-  "targetLow": <lowest analyst target price>,
-  "targetMean": <average/consensus target price>,
-  "numberOfAnalysts": <approximate number of analysts covering>,
-  "recommendation": "buy" or "hold" or "sell",
-  "recommendationMean": <1.0 to 5.0 where 1=strong buy, 5=strong sell>,
-  "reasoning": "<2-3 sentences in Korean explaining why this target price, key factors considered>",
+  "targetHigh": <number>,
+  "targetLow": <number>,
+  "targetMean": <number>,
+  "numberOfAnalysts": <number>,
+  "recommendation": "buy"|"hold"|"sell",
+  "recommendationMean": <1.0-5.0>,
+  "reasoning": "<Korean, structured as: [매크로] 1-2문장 거시경제 영향 → [산업] 1-2문장 산업/섹터 전망 → [종목] 1-2문장 개별 종목 요인 → [총평] 1문장 종합 판단>",
   "sources": [
-    {"name": "<analyst firm>", "target": <price>, "rating": "buy"|"hold"|"sell", "url": "<link to report or news article>"}
+    {"name": "<firm>", "target": <price>, "rating": "buy"|"hold"|"sell", "url": "<Google News search URL for this specific analyst report, format: https://www.google.com/search?q=FIRM+TICKER+target+price+rating+2026&tbm=nws>"}
   ]
 }
 
-IMPORTANT: Use the MOST RECENT analyst data available. Target prices MUST be realistic relative to the current stock price provided above — they should typically be within +/-30% of the current price. Do NOT use outdated pre-split prices. Prices should be in the stock's native currency (KRW for Korean stocks, USD for US stocks). Include 3-5 major analyst sources with links to actual reports or news articles about their ratings.`
+Rules:
+- Target prices MUST be realistic vs current price (within ±30%). Do NOT use pre-split or outdated prices.
+- Currency: KRW for .KS tickers, USD for US tickers.
+- reasoning MUST have [매크로] [산업] [종목] [총평] sections in Korean.
+- sources: 3-5 firms. URL must be a Google News search for that firm's actual report on this stock — NOT the firm's homepage.
+- Only include sources you are confident have actually published ratings.`
           }]
         }],
         generationConfig: { temperature: 0.1 }
