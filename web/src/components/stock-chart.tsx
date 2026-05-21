@@ -19,12 +19,13 @@ interface StockChartProps {
 }
 
 const RANGE_OPTIONS = [
-  { label: "1W", range: "5d", interval: "15m" },
-  { label: "1M", range: "1mo", interval: "1d" },
+  { label: "1D", range: "1d", interval: "5m" },
+  { label: "5D", range: "5d", interval: "15m" },
+  { label: "1M", range: "1mo", interval: "1h" },
   { label: "3M", range: "3mo", interval: "1d" },
   { label: "6M", range: "6mo", interval: "1d" },
-  { label: "1Y", range: "1y", interval: "1wk" },
-  { label: "5Y", range: "5y", interval: "1mo" },
+  { label: "1Y", range: "1y", interval: "1d" },
+  { label: "5Y", range: "5y", interval: "1wk" },
 ];
 
 export function StockChart({ symbol }: StockChartProps) {
@@ -32,7 +33,7 @@ export function StockChart({ symbol }: StockChartProps) {
   const chartInstance = useRef<any>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRange, setSelectedRange] = useState(1); // default 1M
+  const [selectedRange, setSelectedRange] = useState(3); // default 3M
   const [currency, setCurrency] = useState("USD");
 
   // Fetch chart data
@@ -103,22 +104,22 @@ export function StockChart({ symbol }: StockChartProps) {
       let candleSeries: any;
       if (CandlestickSeries) {
         candleSeries = chart.addSeries(CandlestickSeries, {
-          upColor: "#22c55e",
-          downColor: "#ef4444",
-          borderUpColor: "#22c55e",
-          borderDownColor: "#ef4444",
-          wickUpColor: "#22c55e",
-          wickDownColor: "#ef4444",
+          upColor: "#ef4444",
+          downColor: "#3b82f6",
+          borderUpColor: "#ef4444",
+          borderDownColor: "#3b82f6",
+          wickUpColor: "#ef4444",
+          wickDownColor: "#3b82f6",
         });
       } else {
         // fallback for older versions
         candleSeries = (chart as any).addCandlestickSeries({
-          upColor: "#22c55e",
-          downColor: "#ef4444",
-          borderUpColor: "#22c55e",
-          borderDownColor: "#ef4444",
-          wickUpColor: "#22c55e",
-          wickDownColor: "#ef4444",
+          upColor: "#ef4444",
+          downColor: "#3b82f6",
+          borderUpColor: "#ef4444",
+          borderDownColor: "#3b82f6",
+          wickUpColor: "#ef4444",
+          wickDownColor: "#3b82f6",
         });
       }
 
