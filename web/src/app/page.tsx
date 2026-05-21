@@ -47,32 +47,32 @@ const MOCK_DATA: Record<string, TickerData> = {
     },
     macro: {
       positive: [
-        { text: "CPI 둔화 추세 지속 (3.2% → 2.9%)", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/", date: "05/18" },
-        { text: "Fed 금리 동결 시사", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/19" },
+        { text: "CPI 둔화 추세 지속 (3.2% → 2.9%)", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/series/CPIAUCSL", date: "05/18 08:30" },
+        { text: "Fed 금리 동결 시사", source: "Reuters", sourceUrl: "https://www.reuters.com/business/finance/", date: "05/19 21:00" },
       ],
       negative: [
-        { text: "지정학 리스크 고조 (중동)", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/", date: "05/17" },
-        { text: "DXY 강세 (105.3)", source: "Investing.com", sourceUrl: "https://www.investing.com/", date: "05/20" },
+        { text: "지정학 리스크 고조 (중동)", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/news/articles/2026-05-17/middle-east-tensions", date: "05/17 07:30" },
+        { text: "DXY 강세 (105.3)", source: "Investing.com", sourceUrl: "https://www.investing.com/indices/usdollar", date: "05/20 15:00" },
       ],
     },
     industry: {
       positive: [
-        { text: "AI 반도체 투자 확대", source: "TechCrunch", sourceUrl: "https://techcrunch.com/", date: "05/19" },
-        { text: "데이터센터 수주 증가", source: "Industry Report", date: "05/16" },
+        { text: "AI 반도체 투자 확대", source: "TechCrunch", sourceUrl: "https://techcrunch.com/tag/semiconductors/", date: "05/19 11:00" },
+        { text: "데이터센터 수주 증가", source: "Industry Report", date: "05/16 09:00" },
       ],
       negative: [
-        { text: "중국 수출 규제 강화 가능성", source: "FT", sourceUrl: "https://www.ft.com/", date: "05/20" },
-        { text: "원자재 가격 상승 (구리 +8%)", source: "Commodity", date: "05/18" },
+        { text: "중국 수출 규제 강화 가능성", source: "FT", sourceUrl: "https://www.ft.com/technology", date: "05/20 06:00" },
+        { text: "원자재 가격 상승 (구리 +8%)", source: "Commodity", date: "05/18 10:00" },
       ],
     },
     stock: {
       positive: [
-        { text: "2Q 실적 컨센서스 상회 (+12%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/", date: "05/20" },
-        { text: "신규 고객사 확보 공시", source: "DART", sourceUrl: "https://dart.fss.or.kr/", date: "05/19" },
+        { text: "2Q 실적 컨센서스 상회 (+12%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/dsab001/main.do?autoSearch=true&textCrpNm=삼성전자", date: "05/20 16:00" },
+        { text: "신규 고객사 확보 공시", source: "DART", sourceUrl: "https://dart.fss.or.kr/dsab001/main.do?autoSearch=true&textCrpNm=삼성전자", date: "05/19 09:00" },
       ],
       negative: [
-        { text: "내부자 매도 3건 (최근 30일)", source: "공시", sourceUrl: "https://dart.fss.or.kr/", date: "05/15" },
-        { text: "애널리스트 목표가 하향 (2건)", source: "증권사", date: "05/18" },
+        { text: "내부자 매도 3건 (최근 30일)", source: "공시", sourceUrl: "https://dart.fss.or.kr/dsab001/main.do?autoSearch=true&textCrpNm=삼성전자", date: "05/15 18:00" },
+        { text: "애널리스트 목표가 하향 (2건)", source: "증권사", date: "05/18 08:00" },
       ],
     },
     news: [
@@ -104,34 +104,34 @@ const MOCK_DATA: Record<string, TickerData> = {
     },
     macro: {
       positive: [
-        { text: "CPI 둔화 추세 — 기술주 밸류에이션 부담 완화", date: "05/18", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/" },
-        { text: "Fed 금리 동결 기조 유지", date: "05/19", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
+        { text: "CPI 둔화 추세 — 기술주 밸류에이션 부담 완화", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/series/CPIAUCSL", date: "05/18 08:30" },
+        { text: "Fed 금리 동결 기조 유지", source: "Reuters", sourceUrl: "https://www.reuters.com/business/finance/", date: "05/19 21:00" },
       ],
       negative: [
-        { text: "미 정부 빅테크 규제 논의 진행 중", date: "05/16", source: "WSJ", sourceUrl: "https://www.wsj.com/" },
-        { text: "DXY 강세 — 해외 매출 환산 불리", date: "05/20", source: "Investing.com", sourceUrl: "https://www.investing.com/" },
+        { text: "미 정부 빅테크 규제 논의 진행 중", source: "WSJ", sourceUrl: "https://www.wsj.com/tech/", date: "05/16 11:00" },
+        { text: "DXY 강세 — 해외 매출 환산 불리", source: "Investing.com", sourceUrl: "https://www.investing.com/indices/usdollar", date: "05/20 15:00" },
       ],
     },
     industry: {
       positive: [
-        { text: "AI 검색 시장 급성장 — Google 점유율 90%+", source: "StatCounter", sourceUrl: "https://gs.statcounter.com/" },
-        { text: "클라우드 인프라 지출 증가 (YoY +22%)", source: "Gartner" },
-        { text: "디지털 광고 시장 회복세", source: "eMarketer" },
+        { text: "AI 검색 시장 급성장 — Google 점유율 90%+", source: "StatCounter", sourceUrl: "https://gs.statcounter.com/search-engine-market-share", date: "05/19 10:00" },
+        { text: "클라우드 인프라 지출 증가 (YoY +22%)", source: "Gartner", sourceUrl: "https://www.gartner.com/en/newsroom", date: "05/17 09:00" },
+        { text: "디지털 광고 시장 회복세", source: "eMarketer", sourceUrl: "https://www.emarketer.com/", date: "05/18 14:00" },
       ],
       negative: [
-        { text: "OpenAI ChatGPT 검색 경쟁 심화", source: "The Verge", sourceUrl: "https://www.theverge.com/" },
-        { text: "EU 디지털 시장법(DMA) 규제 리스크", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
+        { text: "OpenAI ChatGPT 검색 경쟁 심화", source: "The Verge", sourceUrl: "https://www.theverge.com/openai", date: "05/20 08:30" },
+        { text: "EU 디지털 시장법(DMA) 규제 리스크", source: "Reuters", sourceUrl: "https://www.reuters.com/technology/", date: "05/16 16:00" },
       ],
     },
     stock: {
       positive: [
-        { text: "Google I/O 2026 — Gemini 2.5 발표, AI 통합 강화", source: "Google Blog", sourceUrl: "https://blog.google/" },
-        { text: "1Q 실적 서프라이즈 (EPS +15% beat)", source: "Earnings" },
-        { text: "자사주 매입 $70B 승인", source: "SEC", sourceUrl: "https://www.sec.gov/" },
+        { text: "Google I/O 2026 — Gemini 2.5 발표, AI 통합 강화", source: "Google Blog", sourceUrl: "https://blog.google/technology/ai/", date: "05/19 18:00" },
+        { text: "1Q 실적 서프라이즈 (EPS +15% beat)", source: "Earnings", sourceUrl: "https://abc.xyz/investor/", date: "05/14 16:30" },
+        { text: "자사주 매입 $70B 승인", source: "SEC", sourceUrl: "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=alphabet", date: "05/14 17:00" },
       ],
       negative: [
-        { text: "반독점 소송 진행 중 (검색 독점)", source: "DOJ" },
-        { text: "CFO, 향후 CAPEX 대폭 증가 경고", source: "Earnings Call" },
+        { text: "반독점 소송 진행 중 (검색 독점)", source: "DOJ", sourceUrl: "https://www.justice.gov/atr", date: "05/12 10:00" },
+        { text: "CFO, 향후 CAPEX 대폭 증가 경고", source: "Earnings Call", sourceUrl: "https://abc.xyz/investor/", date: "05/14 17:30" },
       ],
     },
     news: [
@@ -164,33 +164,33 @@ const MOCK_DATA: Record<string, TickerData> = {
     },
     macro: {
       positive: [
-        { text: "글로벌 IT 투자 증가 추세", source: "Gartner" },
-        { text: "Fed 금리 동결 — 기술 투자 환경 호전", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
+        { text: "글로벌 IT 투자 증가 추세", source: "Gartner", date: "05/15 09:00" },
+        { text: "Fed 금리 동결 — 기술 투자 환경 호전", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/19 21:00" },
       ],
       negative: [
-        { text: "USD/KRW 환율 불안정 (1,350원대)", source: "한국은행" },
-        { text: "지정학 리스크 — 한반도 긴장", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/" },
+        { text: "USD/KRW 환율 불안정 (1,350원대)", source: "한국은행", date: "05/20 09:30" },
+        { text: "지정학 리스크 — 한반도 긴장", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/", date: "05/18 07:00" },
       ],
     },
     industry: {
       positive: [
-        { text: "HBM 시장 CAGR 45% 성장 전망", source: "TrendForce" },
-        { text: "DRAM 현물가 +12% (최근 1개월)", source: "DRAMeXchange" },
-        { text: "AI 서버 출하량 2배 증가 예상", source: "IDC" },
+        { text: "HBM 시장 CAGR 45% 성장 전망", source: "TrendForce", date: "05/16 10:00" },
+        { text: "DRAM 현물가 +12% (최근 1개월)", source: "DRAMeXchange", date: "05/20 11:00" },
+        { text: "AI 서버 출하량 2배 증가 예상", source: "IDC", date: "05/14 14:00" },
       ],
       negative: [
-        { text: "중국 자체 메모리 개발 가속 (CXMT)", source: "IC Insights" },
-        { text: "삼성전자 HBM3E 양산 추격", source: "연합뉴스", sourceUrl: "https://www.yna.co.kr/" },
+        { text: "중국 자체 메모리 개발 가속 (CXMT)", source: "IC Insights", date: "05/17 09:00" },
+        { text: "삼성전자 HBM3E 양산 추격", source: "연합뉴스", sourceUrl: "https://www.yna.co.kr/", date: "05/19 10:30" },
       ],
     },
     stock: {
       positive: [
-        { text: "HBM3E NVIDIA 독점 공급 계약", source: "공시", sourceUrl: "https://dart.fss.or.kr/" },
-        { text: "1Q 영업이익 컨센서스 상회 (+22%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/" },
+        { text: "HBM3E NVIDIA 독점 공급 계약", source: "공시", sourceUrl: "https://dart.fss.or.kr/", date: "05/12 09:00" },
+        { text: "1Q 영업이익 컨센서스 상회 (+22%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/", date: "05/08 16:00" },
       ],
       negative: [
-        { text: "CAPEX 대폭 증가 — FCF 압박 우려", source: "IR" },
-        { text: "미국 중국향 AI칩 수출 규제 확대 리스크", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
+        { text: "CAPEX 대폭 증가 — FCF 압박 우려", source: "IR", date: "05/08 17:00" },
+        { text: "미국 중국향 AI칩 수출 규제 확대 리스크", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/20 14:00" },
       ],
     },
     news: [
