@@ -48,10 +48,11 @@ export function StockChart({ symbol }: StockChartProps) {
   const [selectedRange, setSelectedRange] = useState(0); // default 1min
   const [currency, setCurrency] = useState("USD");
   const [autoRefreshCount, setAutoRefreshCount] = useState(0);
+  const [lastCandle, setLastCandle] = useState("");
 
   // Auto-refresh chart every 60s
   useEffect(() => {
-    const interval = setInterval(() => setAutoRefreshCount((c) => c + 1), 60_000);
+    const interval = setInterval(() => setAutoRefreshCount((c) => c + 1), 15_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -67,9 +68,11 @@ export function StockChart({ symbol }: StockChartProps) {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        if (data.candles) {
+        if (data.candles && data.candles.length > 0) {
           setCandles(data.candles);
           setCurrency(data.currency ?? "USD");
+          const lastTs = data.candles[data.candles.length - 1].time;
+          setLastCandle(new Date(lastTs * 1000).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit", hour12: false }));
         }
         setLoading(false);
       })
@@ -270,7 +273,7 @@ export function StockChart({ symbol }: StockChartProps) {
         )}
         <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-300 dark:text-zinc-600">
           <span>Source: Yahoo Finance</span>
-          <span>Auto-refresh 30s</span>
+          <span>Last candle: {lastCandle || "—"} · Auto 15s</span>
         </div>
       </CardContent>
     </Card>
