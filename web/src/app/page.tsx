@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { AppHeader } from "@/components/app-header";
+import { useAuthStore } from "@/lib/auth-store";
 import { AISummaryCard } from "@/components/ai-summary-card";
 import { AxisCard, type FactorItem } from "@/components/axis-card";
 // PeriodTabs removed — Daily only for now
@@ -215,11 +216,36 @@ const DEFAULT_WATCHLIST: WatchlistItem[] = [
 
 // ─── Page ────────────────────────────────────────────────────
 
+// Persist watchlist to localStorage (and Supabase when logged in)
+function usePersistentWatchlist() {
+  const [watchlist, setWatchlist] = useState<WatchlistItem[]>(DEFAULT_WATCHLIST);
+  const user = useAuthStore((s) => s.user);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("investinfo_watchlist");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) setWatchlist(parsed);
+      } catch {}
+    }
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem("investinfo_watchlist", JSON.stringify(watchlist));
+  }, [watchlist]);
+
+  return { watchlist, setWatchlist, user };
+}
+
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [watchlist, setWatchlist] = useState<WatchlistItem[]>(DEFAULT_WATCHLIST);
+  const { watchlist, setWatchlist, user } = usePersistentWatchlist();
   const [selectedTicker, setSelectedTicker] = useState("005930.KS");
   const isMobile = useMediaQuery("(max-width: 640px)");
+  const [lastUpdated] = useState(() => new Date());
 
   const data = MOCK_DATA[selectedTicker] ?? MOCK_DATA["005930.KS"];
 
@@ -273,7 +299,12 @@ export default function HomePage() {
               <h2 className="text-lg font-bold">{data.name}</h2>
               <QuoteBadge quote={quotes[selectedTicker]} loading={quotesLoading} />
             </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">{selectedTicker}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">{selectedTicker}</p>
+              <span className="text-[10px] text-slate-300 dark:text-zinc-600">
+                Last updated: {lastUpdated.toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit", hour12: false })}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <DatePicker value={selectedDate} onChange={setSelectedDate} />

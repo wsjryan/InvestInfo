@@ -84,7 +84,7 @@ export function WatchlistManager({
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const dragItem = useRef<number | null>(null);
-  const dragOverItem = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const filteredSuggestions = SUGGESTIONS.filter(
     (s) =>
@@ -93,49 +93,89 @@ export function WatchlistManager({
         s.ticker.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const handleDragStart = (index: number) => {
+  const handleDragStart = (e: React.DragEvent, index: number) => {
     dragItem.current = index;
+    e.dataTransfer.effectAllowed = "move";
+    // Make the drag image semi-transparent
+    const el = e.currentTarget as HTMLElement;
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.style.opacity = "0.5";
+    document.body.appendChild(clone);
+    e.dataTransfer.setDragImage(clone, 0, 0);
+    setTimeout(() => document.body.removeChild(clone), 0);
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    dragOverItem.current = index;
+    e.dataTransfer.dropEffect = "move";
+    setDragOverIndex(index);
   };
 
-  const handleDrop = () => {
-    if (dragItem.current === null || dragOverItem.current === null) return;
-    if (dragItem.current === dragOverItem.current) return;
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragItem.current === null || dragItem.current === index) {
+      setDragOverIndex(null);
+      return;
+    }
 
     const reordered = [...items];
     const [removed] = reordered.splice(dragItem.current, 1);
-    reordered.splice(dragOverItem.current, 0, removed);
+    reordered.splice(index, 0, removed);
     onReorder(reordered);
 
     dragItem.current = null;
-    dragOverItem.current = null;
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    dragItem.current = null;
+    setDragOverIndex(null);
   };
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-1">
-      {items.map((item, index) => (
-        <button
-          key={item.ticker}
-          draggable
-          onDragStart={() => handleDragStart(index)}
-          onDragOver={(e) => handleDragOver(e, index)}
-          onDrop={handleDrop}
-          onClick={() => onSelect(item.ticker)}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-grab active:cursor-grabbing ${
-            selected === item.ticker
-              ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-          }`}
-        >
-          <span className="opacity-40 text-[10px]">⠿</span>
-          {item.name}
-          <span className="text-[10px] opacity-60">{item.market}</span>
-        </button>
-      ))}
+      {items.map((item, index) => {
+        const isDragOver = dragOverIndex === index;
+        const isDragging = dragItem.current === index;
+
+        return (
+          <div key={item.ticker} className="relative shrink-0 flex items-center">
+            {/* Drop indicator — left side ghost */}
+            {isDragOver && dragItem.current !== null && dragItem.current > index && (
+              <div className="absolute -left-1.5 top-0 bottom-0 w-0.5 bg-blue-500 rounded-full z-10" />
+            )}
+            <button
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={() => handleDrop(index)}
+              onDragEnd={handleDragEnd}
+              onClick={() => onSelect(item.ticker)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-grab active:cursor-grabbing ${
+                isDragging ? "opacity-30 scale-95" : ""
+              } ${
+                isDragOver ? "ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-zinc-950" : ""
+              } ${
+                selected === item.ticker
+                  ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              }`}
+            >
+              <span className="opacity-30 text-[10px]">⠿</span>
+              {item.name}
+              <span className="text-[10px] opacity-60">{item.market}</span>
+            </button>
+            {/* Drop indicator — right side ghost */}
+            {isDragOver && dragItem.current !== null && dragItem.current < index && (
+              <div className="absolute -right-1.5 top-0 bottom-0 w-0.5 bg-blue-500 rounded-full z-10" />
+            )}
+          </div>
+        );
+      })}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger
