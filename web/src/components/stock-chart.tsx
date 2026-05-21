@@ -19,13 +19,13 @@ interface StockChartProps {
 }
 
 const RANGE_OPTIONS = [
-  { label: "1D", range: "1d", interval: "5m" },
-  { label: "5D", range: "5d", interval: "15m" },
-  { label: "1M", range: "1mo", interval: "1h" },
-  { label: "3M", range: "3mo", interval: "1d" },
-  { label: "6M", range: "6mo", interval: "1d" },
-  { label: "1Y", range: "1y", interval: "1d" },
-  { label: "5Y", range: "5y", interval: "1wk" },
+  { label: "5min", range: "1d", interval: "5m" },
+  { label: "15min", range: "5d", interval: "15m" },
+  { label: "1H", range: "1mo", interval: "1h" },
+  { label: "1D", range: "3mo", interval: "1d" },
+  { label: "1D(6M)", range: "6mo", interval: "1d" },
+  { label: "1D(1Y)", range: "1y", interval: "1d" },
+  { label: "1W", range: "5y", interval: "1wk" },
 ];
 
 interface TooltipData {
@@ -44,7 +44,7 @@ export function StockChart({ symbol }: StockChartProps) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedRange, setSelectedRange] = useState(3); // default 3M
+  const [selectedRange, setSelectedRange] = useState(3); // default 1D (3mo daily)
   const [currency, setCurrency] = useState("USD");
 
   // Fetch chart data
