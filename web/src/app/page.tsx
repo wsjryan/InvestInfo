@@ -85,11 +85,11 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     estimates: [
-      { source: "삼성증권", sourceUrl: "https://www.samsungpop.com/", target: 95000, rating: "buy", date: "05/15" },
-      { source: "NH투자증권", sourceUrl: "https://www.nhqv.com/", target: 88000, rating: "buy", date: "05/12" },
-      { source: "키움증권", target: 78000, rating: "hold", date: "05/18" },
-      { source: "미래에셋증권", sourceUrl: "https://www.miraeasset.com/", target: 92000, rating: "outperform", date: "05/10" },
-      { source: "JP Morgan", sourceUrl: "https://www.jpmorgan.com/", target: 85000, rating: "hold", date: "05/08" },
+      { source: "삼성증권", sourceUrl: "https://www.samsungpop.com/", target: 95000, rating: "buy", date: "2026.05.15 09:00" },
+      { source: "NH투자증권", sourceUrl: "https://www.nhqv.com/", target: 88000, rating: "buy", date: "2026.05.12 08:30" },
+      { source: "키움증권", target: 78000, rating: "hold", date: "2026.05.18 10:00" },
+      { source: "미래에셋증권", sourceUrl: "https://www.miraeasset.com/", target: 92000, rating: "outperform", date: "2026.05.10 09:00" },
+      { source: "JP Morgan", sourceUrl: "https://www.jpmorgan.com/", target: 85000, rating: "hold", date: "2026.05.08 16:00" },
     ],
     news: [
       { title: "Fed 파월 의장, 추가 금리 인상 가능성 일축", source: "Reuters", sourceUrl: "https://www.reuters.com/", time: "09:30", sentiment: "positive", axis: "macro" },
@@ -155,10 +155,10 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     estimates: [
-      { source: "Goldman Sachs", sourceUrl: "https://www.goldmansachs.com/", target: 210, rating: "buy", date: "05/15" },
-      { source: "Morgan Stanley", sourceUrl: "https://www.morganstanley.com/", target: 205, rating: "outperform", date: "05/12" },
-      { source: "Barclays", sourceUrl: "https://www.barclays.com/", target: 195, rating: "buy", date: "05/10" },
-      { source: "Citi", sourceUrl: "https://www.citigroup.com/", target: 185, rating: "hold", date: "05/08" },
+      { source: "Goldman Sachs", sourceUrl: "https://www.goldmansachs.com/", target: 210, rating: "buy", date: "2026.05.15 16:00" },
+      { source: "Morgan Stanley", sourceUrl: "https://www.morganstanley.com/", target: 205, rating: "outperform", date: "2026.05.12 09:30" },
+      { source: "Barclays", sourceUrl: "https://www.barclays.com/", target: 195, rating: "buy", date: "2026.05.10 08:00" },
+      { source: "Citi", sourceUrl: "https://www.citigroup.com/", target: 185, rating: "hold", date: "2026.05.08 10:00" },
     ],
     news: [
       { title: "Google I/O 2026: Gemini 2.5 공개, AI 에이전트 시대 선언", source: "Google Blog", sourceUrl: "https://blog.google/", time: "10:00", sentiment: "positive", axis: "stock" },
@@ -224,10 +224,10 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     estimates: [
-      { source: "삼성증권", sourceUrl: "https://www.samsungpop.com/", target: 280000, rating: "buy", date: "05/14" },
-      { source: "NH투자증권", sourceUrl: "https://www.nhqv.com/", target: 260000, rating: "buy", date: "05/10" },
-      { source: "한국투자증권", target: 250000, rating: "outperform", date: "05/12" },
-      { source: "Goldman Sachs", sourceUrl: "https://www.goldmansachs.com/", target: 240000, rating: "buy", date: "05/08" },
+      { source: "삼성증권", sourceUrl: "https://www.samsungpop.com/", target: 280000, rating: "buy", date: "2026.05.14 09:00" },
+      { source: "NH투자증권", sourceUrl: "https://www.nhqv.com/", target: 260000, rating: "buy", date: "2026.05.10 08:30" },
+      { source: "한국투자증권", target: 250000, rating: "outperform", date: "2026.05.12 10:00" },
+      { source: "Goldman Sachs", sourceUrl: "https://www.goldmansachs.com/", target: 240000, rating: "buy", date: "2026.05.08 16:00" },
     ],
     news: [
       { title: "SK하이닉스, HBM3E 12H 양산 돌입", source: "공시", sourceUrl: "https://dart.fss.or.kr/", time: "09:00", sentiment: "positive", axis: "stock" },
@@ -303,7 +303,21 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  const data = MOCK_DATA[selectedTicker] ?? MOCK_DATA["005930.KS"];
+  // Find the display name from watchlist for tickers not in mock data
+  const selectedWatchItem = watchlist.find((w) => w.ticker === selectedTicker);
+  const fallbackData: TickerData = {
+    name: selectedWatchItem?.name ?? selectedTicker,
+    currency: selectedTicker.endsWith(".KS") ? "KRW" : "USD",
+    verdict: { verdict: "hold", confidence: 50, summary: "데이터 수집 중입니다." },
+    aiSummary: { sentiment: "neutral", summary: "이 종목은 아직 분석 데이터가 준비되지 않았습니다." },
+    macro: { score: 0, positive: [], negative: [] },
+    industry: { score: 0, positive: [], negative: [] },
+    stock: { score: 0, positive: [], negative: [] },
+    estimates: [],
+    news: [],
+    events: [],
+  };
+  const data = MOCK_DATA[selectedTicker] ?? fallbackData;
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
