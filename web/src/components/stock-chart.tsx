@@ -45,7 +45,7 @@ export function StockChart({ symbol }: StockChartProps) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedRange, setSelectedRange] = useState(1); // default 5min
+  const [selectedRange, setSelectedRange] = useState(0); // default 1min
   const [currency, setCurrency] = useState("USD");
   const [autoRefreshCount, setAutoRefreshCount] = useState(0);
 
