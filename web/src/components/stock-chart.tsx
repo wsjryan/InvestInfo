@@ -47,15 +47,23 @@ export function StockChart({ symbol }: StockChartProps) {
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState(1); // default 5min
   const [currency, setCurrency] = useState("USD");
+  const [autoRefreshCount, setAutoRefreshCount] = useState(0);
+
+  // Auto-refresh chart every 60s
+  useEffect(() => {
+    const interval = setInterval(() => setAutoRefreshCount((c) => c + 1), 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch chart data
   useEffect(() => {
     if (!symbol) return;
     let cancelled = false;
-    setLoading(true);
+    // Only show loading on first load, not refreshes
+    if (candles.length === 0) setLoading(true);
 
     const opt = RANGE_OPTIONS[selectedRange];
-    fetch(`/api/chart?symbol=${encodeURIComponent(symbol)}&range=${opt.range}&interval=${opt.interval}`)
+    fetch(`/api/chart?symbol=${encodeURIComponent(symbol)}&range=${opt.range}&interval=${opt.interval}&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -70,7 +78,7 @@ export function StockChart({ symbol }: StockChartProps) {
       });
 
     return () => { cancelled = true; };
-  }, [symbol, selectedRange]);
+  }, [symbol, selectedRange, autoRefreshCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Render chart
   useEffect(() => {

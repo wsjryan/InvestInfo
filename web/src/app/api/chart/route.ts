@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const url = `${YAHOO_BASE}/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { next: { revalidate: 30 } }); // refresh every 30s
     if (!res.ok) throw new Error(`Yahoo ${res.status}`);
     const json = await res.json();
 
