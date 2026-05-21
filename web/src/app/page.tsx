@@ -47,32 +47,32 @@ const MOCK_DATA: Record<string, TickerData> = {
     },
     macro: {
       positive: [
-        { text: "CPI 둔화 추세 지속 (3.2% → 2.9%)", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/" },
-        { text: "Fed 금리 동결 시사", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
+        { text: "CPI 둔화 추세 지속 (3.2% → 2.9%)", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/", date: "05/18" },
+        { text: "Fed 금리 동결 시사", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/19" },
       ],
       negative: [
-        { text: "지정학 리스크 고조 (중동)", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/" },
-        { text: "DXY 강세 (105.3)", source: "Investing.com", sourceUrl: "https://www.investing.com/" },
+        { text: "지정학 리스크 고조 (중동)", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/", date: "05/17" },
+        { text: "DXY 강세 (105.3)", source: "Investing.com", sourceUrl: "https://www.investing.com/", date: "05/20" },
       ],
     },
     industry: {
       positive: [
-        { text: "AI 반도체 투자 확대", source: "TechCrunch", sourceUrl: "https://techcrunch.com/" },
-        { text: "데이터센터 수주 증가", source: "Industry Report" },
+        { text: "AI 반도체 투자 확대", source: "TechCrunch", sourceUrl: "https://techcrunch.com/", date: "05/19" },
+        { text: "데이터센터 수주 증가", source: "Industry Report", date: "05/16" },
       ],
       negative: [
-        { text: "중국 수출 규제 강화 가능성", source: "FT", sourceUrl: "https://www.ft.com/" },
-        { text: "원자재 가격 상승 (구리 +8%)", source: "Commodity" },
+        { text: "중국 수출 규제 강화 가능성", source: "FT", sourceUrl: "https://www.ft.com/", date: "05/20" },
+        { text: "원자재 가격 상승 (구리 +8%)", source: "Commodity", date: "05/18" },
       ],
     },
     stock: {
       positive: [
-        { text: "2Q 실적 컨센서스 상회 (+12%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/" },
-        { text: "신규 고객사 확보 공시", source: "DART", sourceUrl: "https://dart.fss.or.kr/" },
+        { text: "2Q 실적 컨센서스 상회 (+12%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/", date: "05/20" },
+        { text: "신규 고객사 확보 공시", source: "DART", sourceUrl: "https://dart.fss.or.kr/", date: "05/19" },
       ],
       negative: [
-        { text: "내부자 매도 3건 (최근 30일)", source: "공시", sourceUrl: "https://dart.fss.or.kr/" },
-        { text: "애널리스트 목표가 하향 (2건)", source: "증권사" },
+        { text: "내부자 매도 3건 (최근 30일)", source: "공시", sourceUrl: "https://dart.fss.or.kr/", date: "05/15" },
+        { text: "애널리스트 목표가 하향 (2건)", source: "증권사", date: "05/18" },
       ],
     },
     news: [
@@ -104,12 +104,12 @@ const MOCK_DATA: Record<string, TickerData> = {
     },
     macro: {
       positive: [
-        { text: "CPI 둔화 추세 — 기술주 밸류에이션 부담 완화", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/" },
-        { text: "Fed 금리 동결 기조 유지", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
+        { text: "CPI 둔화 추세 — 기술주 밸류에이션 부담 완화", date: "05/18", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/" },
+        { text: "Fed 금리 동결 기조 유지", date: "05/19", source: "Reuters", sourceUrl: "https://www.reuters.com/" },
       ],
       negative: [
-        { text: "미 정부 빅테크 규제 논의 진행 중", source: "WSJ", sourceUrl: "https://www.wsj.com/" },
-        { text: "DXY 강세 — 해외 매출 환산 불리", source: "Investing.com", sourceUrl: "https://www.investing.com/" },
+        { text: "미 정부 빅테크 규제 논의 진행 중", date: "05/16", source: "WSJ", sourceUrl: "https://www.wsj.com/" },
+        { text: "DXY 강세 — 해외 매출 환산 불리", date: "05/20", source: "Investing.com", sourceUrl: "https://www.investing.com/" },
       ],
     },
     industry: {
