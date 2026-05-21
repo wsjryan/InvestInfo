@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SourceLink } from "@/components/source-link";
+import { useTZStore } from "@/lib/timezone";
 
 export interface NewsItem {
   title: string;
@@ -36,23 +37,34 @@ const TICKER_QUERIES: Record<string, string> = {
   "035720.KS": "카카오",
 };
 
-function parseTimeToMs(t: string): number {
-  // Try parsing various formats: "05. 20. 15:22:30", "05/21 16:30", etc.
-  // Normalize to "MM/DD HH:MM:SS" then compare
-  const cleaned = t.replace(/\. /g, "/").replace(/\./g, "/").trim();
-  // Try direct Date parse with year prefix
-  const withYear = `2026/${cleaned.replace(/ /, " ").replace(/\/\//g, "/")}`;
-  const d = new Date(withYear);
-  if (!isNaN(d.getTime())) return d.getTime();
-  // Fallback: strip non-digits and compare as number
-  return parseInt(t.replace(/\D/g, ""), 10) || 0;
+function toMs(t: string): number {
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
 function sortByTime(items: NewsItem[]): NewsItem[] {
-  return [...items].sort((a, b) => parseTimeToMs(b.time) - parseTimeToMs(a.time));
+  return [...items].sort((a, b) => toMs(b.time) - toMs(a.time));
 }
 
-function NewsList({ items, emptyText }: { items: NewsItem[]; emptyText: string }) {
+function formatNewsTime(isoStr: string, tz: string): string {
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    return d.toLocaleString("ko-KR", {
+      timeZone: tz,
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  } catch {
+    return isoStr;
+  }
+}
+
+function NewsList({ items, emptyText, tz }: { items: NewsItem[]; emptyText: string; tz: string }) {
   if (items.length === 0) {
     return <p className="text-xs text-slate-400 dark:text-zinc-500 italic py-2">{emptyText}</p>;
   }
@@ -61,7 +73,7 @@ function NewsList({ items, emptyText }: { items: NewsItem[]; emptyText: string }
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3">
           <div className="text-[10px] text-slate-400 dark:text-zinc-500 w-28 shrink-0 pt-0.5 font-mono">
-            {item.time}
+            {formatNewsTime(item.time, tz)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm leading-snug text-slate-700 dark:text-zinc-300">
@@ -94,6 +106,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [liveNews, setLiveNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
     const query = TICKER_QUERIES[ticker] ?? tickerName;
@@ -161,19 +174,19 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
             <Badge variant="outline" className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 text-[10px] mb-2">
               Positive {positive.length}
             </Badge>
-            <NewsList items={positive} emptyText="No positive news" />
+            <NewsList items={positive} emptyText="No positive news" tz={tz} />
           </div>
           <div>
             <Badge variant="outline" className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-[10px] mb-2">
               Negative {negative.length}
             </Badge>
-            <NewsList items={negative} emptyText="No negative news" />
+            <NewsList items={negative} emptyText="No negative news" tz={tz} />
           </div>
         </div>
         {neutral.length > 0 && (
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800">
             <Badge variant="outline" className="text-[10px] mb-2">Latest {neutral.length}</Badge>
-            <NewsList items={neutral} emptyText="" />
+            <NewsList items={neutral} emptyText="" tz={tz} />
           </div>
         )}
         <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
