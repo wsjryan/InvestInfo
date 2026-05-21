@@ -74,7 +74,7 @@ export function TargetPriceCard({
   return (
     <Card className="overflow-hidden">
       <CardContent className="py-4">
-        {/* Formula: Macro × Industry × Stock = Price */}
+        {/* Formula + targets — single row */}
         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 flex-wrap">
           <div className="text-center">
             <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Macro</div>
@@ -92,36 +92,32 @@ export function TargetPriceCard({
           </div>
           <span className="text-slate-300 dark:text-zinc-600 text-lg font-light">=</span>
           <div className="text-center">
-            <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Consensus Target</div>
+            <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Target</div>
             <div className={`text-lg font-bold ${isUpside ? "text-red-500" : "text-blue-500"}`}>
               {overallAvg > 0 ? formatPrice(overallAvg, currency) : "—"}
             </div>
           </div>
+          {/* Inline group averages */}
+          <span className="text-slate-200 dark:text-zinc-700 mx-1">|</span>
+          {bullEstimates.length > 0 && (
+            <div className="text-center">
+              <div className="text-[10px] text-red-400 mb-0.5">Buy ({bullEstimates.length})</div>
+              <div className="text-sm font-bold text-red-500">{formatPrice(bullAvg, currency)}</div>
+            </div>
+          )}
+          {neutralEstimates.length > 0 && (
+            <div className="text-center">
+              <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Hold ({neutralEstimates.length})</div>
+              <div className="text-sm font-bold text-slate-500">{formatPrice(avgOf(neutralEstimates), currency)}</div>
+            </div>
+          )}
+          {bearEstimates.length > 0 && (
+            <div className="text-center">
+              <div className="text-[10px] text-blue-400 mb-0.5">Sell ({bearEstimates.length})</div>
+              <div className="text-sm font-bold text-blue-500">{formatPrice(bearAvg, currency)}</div>
+            </div>
+          )}
         </div>
-
-        {/* Buy vs Sell target split */}
-        {(bullEstimates.length > 0 || bearEstimates.length > 0) && (
-          <div className="flex justify-center gap-6 mb-4">
-            {bullEstimates.length > 0 && (
-              <div className="text-center">
-                <div className="text-[10px] text-red-400 mb-0.5">Buy/Outperform ({bullEstimates.length})</div>
-                <div className="text-sm font-bold text-red-500">{formatPrice(bullAvg, currency)}</div>
-              </div>
-            )}
-            {neutralEstimates.length > 0 && (
-              <div className="text-center">
-                <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Hold ({neutralEstimates.length})</div>
-                <div className="text-sm font-bold text-slate-500">{formatPrice(avgOf(neutralEstimates), currency)}</div>
-              </div>
-            )}
-            {bearEstimates.length > 0 && (
-              <div className="text-center">
-                <div className="text-[10px] text-blue-400 mb-0.5">Sell/Underperform ({bearEstimates.length})</div>
-                <div className="text-sm font-bold text-blue-500">{formatPrice(bearAvg, currency)}</div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Upside/Downside bar */}
         {overallAvg > 0 && currentPrice > 0 && (

@@ -91,7 +91,7 @@ export function StockChart({ symbol }: StockChartProps) {
 
       const chart = lc.createChart(chartRef.current, {
         width: chartRef.current.clientWidth,
-        height: 300,
+        height: 220,
         layout: {
           background: { type: lc.ColorType.Solid, color: "transparent" },
           textColor: isDark ? "#a1a1aa" : "#64748b",
@@ -229,11 +229,11 @@ export function StockChart({ symbol }: StockChartProps) {
       </CardHeader>
       <CardContent className="pb-3">
         {loading ? (
-          <div className="h-[300px] flex items-center justify-center">
+          <div className="h-[220px] flex items-center justify-center">
             <span className="text-xs text-slate-400 dark:text-zinc-500 animate-pulse">Loading chart...</span>
           </div>
         ) : candles.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center">
+          <div className="h-[220px] flex items-center justify-center">
             <span className="text-xs text-slate-400 dark:text-zinc-500">No chart data available</span>
           </div>
         ) : (
