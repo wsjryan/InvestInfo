@@ -70,6 +70,19 @@ export async function GET(req: NextRequest) {
 
   try {
     const name = TICKER_NAMES[symbol] ?? symbol;
+
+    // Get current price from Yahoo for context
+    let currentPriceStr = "";
+    try {
+      const qRes = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`, { cache: "no-store" });
+      if (qRes.ok) {
+        const qJson = await qRes.json();
+        const price = qJson.chart?.result?.[0]?.meta?.regularMarketPrice;
+        const curr = qJson.chart?.result?.[0]?.meta?.currency ?? "USD";
+        if (price) currentPriceStr = `The current stock price is ${curr} ${price} as of today.`;
+      }
+    } catch {}
+
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
 
     // Retry up to 3 times with backoff for rate limits
@@ -81,7 +94,7 @@ export async function GET(req: NextRequest) {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are a financial analyst. For the stock "${name}" (ticker: ${symbol}), provide the current Wall Street analyst consensus as of today.
+            text: `You are a financial analyst. For the stock "${name}" (ticker: ${symbol}), provide the current Wall Street analyst consensus as of today. ${currentPriceStr}
 
 Return ONLY a JSON object with these fields (no explanation):
 {
@@ -96,7 +109,7 @@ Return ONLY a JSON object with these fields (no explanation):
   ]
 }
 
-Use the most recent publicly available analyst data. Prices should be in the stock's native currency (KRW for Korean stocks, USD for US stocks). Include 3-5 major analyst sources with actual report/article URLs if possible.`
+IMPORTANT: Use the MOST RECENT analyst data available. Target prices MUST be realistic relative to the current stock price provided above — they should typically be within +/-30% of the current price. Do NOT use outdated pre-split prices. Prices should be in the stock's native currency (KRW for Korean stocks, USD for US stocks). Include 3-5 major analyst sources with links to actual reports or news articles about their ratings.`
           }]
         }],
         generationConfig: { temperature: 0.1 }
