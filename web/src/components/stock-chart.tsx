@@ -72,7 +72,8 @@ export function StockChart({ symbol }: StockChartProps) {
           setCandles(data.candles);
           setCurrency(data.currency ?? "USD");
           const lastTs = data.candles[data.candles.length - 1].time;
-          setLastCandle(new Date(lastTs * 1000).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit", hour12: false }));
+          const d = new Date(lastTs * 1000);
+          setLastCandle(`${String(d.getUTCMonth()+1).padStart(2,"0")}/${String(d.getUTCDate()).padStart(2,"0")} ${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}:${String(d.getUTCSeconds()).padStart(2,"0")}`);
         }
         setLoading(false);
       })
@@ -177,10 +178,13 @@ export function StockChart({ symbol }: StockChartProps) {
         const d = param.seriesData.get(candleSeries);
         if (!d) { setTooltip(null); return; }
 
+        // Use UTC to match X-axis (exchange local time)
         const ts = typeof param.time === "number"
           ? new Date(param.time * 1000)
           : new Date(`${(param.time as any).year}-${String((param.time as any).month).padStart(2,"0")}-${String((param.time as any).day).padStart(2,"0")}`);
-        const timeStr = ts.toLocaleString("ko-KR", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit", hour12: false });
+        const timeStr = typeof param.time === "number"
+          ? `${String(ts.getUTCMonth()+1).padStart(2,"0")}/${String(ts.getUTCDate()).padStart(2,"0")} ${String(ts.getUTCHours()).padStart(2,"0")}:${String(ts.getUTCMinutes()).padStart(2,"0")}`
+          : ts.toLocaleDateString("ko-KR", { month:"2-digit", day:"2-digit" });
         const changeVal = d.close - d.open;
         const changePct = ((changeVal / d.open) * 100).toFixed(2);
         setTooltip({
