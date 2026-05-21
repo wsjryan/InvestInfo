@@ -87,7 +87,7 @@ export function LiveNews({ ticker, tickerName }: { ticker: string; tickerName: s
           <ul className="space-y-3">
             {news.map((item, i) => (
               <li key={i} className="flex items-start gap-3">
-                <div className="text-[10px] text-slate-400 dark:text-zinc-500 w-12 shrink-0 pt-0.5">
+                <div className="text-[10px] text-slate-400 dark:text-zinc-500 w-24 shrink-0 pt-0.5 font-mono">
                   {item.time}
                 </div>
                 <div className="flex-1 min-w-0">

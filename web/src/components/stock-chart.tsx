@@ -118,6 +118,10 @@ export function StockChart({ symbol }: StockChartProps) {
           borderColor: isDark ? "#3f3f46" : "#e2e8f0",
           scaleMargins: { top: 0.1, bottom: 0.05 },
         },
+        crosshair: {
+          vertLine: { color: isDark ? "#52525b" : "#cbd5e1", style: 2, width: 1, labelBackgroundColor: isDark ? "#3f3f46" : "#e2e8f0" },
+          horzLine: { color: isDark ? "#52525b" : "#cbd5e1", style: 2, width: 1, labelBackgroundColor: isDark ? "#3f3f46" : "#e2e8f0" },
+        },
       });
 
       // v5 API: addSeries with CandlestickSeries type
