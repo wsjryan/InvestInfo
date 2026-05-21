@@ -96,13 +96,13 @@ export function WatchlistManager({
   const handleDragStart = (e: React.DragEvent, index: number) => {
     dragItem.current = index;
     e.dataTransfer.effectAllowed = "move";
-    // Make the drag image semi-transparent
-    const el = e.currentTarget as HTMLElement;
-    const clone = el.cloneNode(true) as HTMLElement;
-    clone.style.opacity = "0.5";
-    document.body.appendChild(clone);
-    e.dataTransfer.setDragImage(clone, 0, 0);
-    setTimeout(() => document.body.removeChild(clone), 0);
+    // Small drag ghost
+    const ghost = document.createElement("div");
+    ghost.textContent = items[index].name;
+    ghost.style.cssText = "position:fixed;top:-100px;padding:4px 12px;border-radius:9999px;font-size:12px;background:#3b82f6;color:#fff;white-space:nowrap;";
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, 14);
+    setTimeout(() => document.body.removeChild(ghost), 0);
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
