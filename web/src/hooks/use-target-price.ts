@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
+export interface AnalystSource {
+  name: string;
+  target: number;
+  rating: string;
+  url?: string;
+}
 
 export interface TargetPriceData {
+  source: string;
   currentPrice: number;
   targetHigh: number;
   targetLow: number;
@@ -11,28 +19,36 @@ export interface TargetPriceData {
   numberOfAnalysts: number;
   recommendation: string;
   recommendationMean: number;
+  sources?: AnalystSource[];
 }
 
-export function useTargetPrice(symbol: string, refreshKey = 0) {
+export function useTargetPrice(symbol: string) {
   const [data, setData] = useState<TargetPriceData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
-  useEffect(() => {
-    if (!symbol) { setLoading(false); return; }
-    let cancelled = false;
+  const fetchTarget = useCallback(() => {
+    if (!symbol) return;
+    setLoading(true);
 
-    fetch(`/api/target-price?symbol=${encodeURIComponent(symbol)}`)
+    fetch(`/api/target-price?symbol=${encodeURIComponent(symbol)}&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((res) => {
-        if (!cancelled && !res.error) {
+        if (!res.error) {
           setData(res);
+          setLastFetched(new Date());
         }
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       })
-      .catch(() => { if (!cancelled) setLoading(false); });
+      .catch(() => setLoading(false));
+  }, [symbol]);
 
-    return () => { cancelled = true; };
-  }, [symbol, refreshKey]);
+  // Auto-fetch on mount + every hour
+  useEffect(() => {
+    fetchTarget();
+    const interval = setInterval(fetchTarget, 60 * 60 * 1000); // 1 hour
+    return () => clearInterval(interval);
+  }, [fetchTarget]);
 
-  return { data, loading };
+  return { data, loading, lastFetched, refresh: fetchTarget };
 }

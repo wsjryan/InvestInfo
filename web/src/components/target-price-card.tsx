@@ -1,21 +1,17 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import type { TargetPriceData } from "@/hooks/use-target-price";
-
-export interface AnalystEstimate {
-  source: string;
-  sourceUrl?: string;
-  target: number;
-  rating: "buy" | "hold" | "sell" | "outperform" | "underperform";
-  date: string;
-}
+import { Button } from "@/components/ui/button";
+import { SourceLink } from "@/components/source-link";
+import type { TargetPriceData, AnalystSource } from "@/hooks/use-target-price";
 
 interface TargetPriceCardProps {
   currentPrice: number;
   currency: string;
   liveTarget: TargetPriceData | null;
   liveTargetLoading: boolean;
+  lastFetched: Date | null;
+  onRefresh: () => void;
   macroScore: number;
   industryScore: number;
   stockScore: number;
@@ -39,11 +35,19 @@ function recLabel(rec: string): { text: string; color: string } {
   return { text: rec.toUpperCase(), color: "text-slate-400" };
 }
 
+function ratingColor(rating: string) {
+  if (["buy", "outperform", "overweight"].includes(rating.toLowerCase())) return "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400";
+  if (["sell", "underperform", "underweight"].includes(rating.toLowerCase())) return "bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400";
+  return "bg-slate-50 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400";
+}
+
 export function TargetPriceCard({
   currentPrice,
   currency,
   liveTarget,
   liveTargetLoading,
+  lastFetched,
+  onRefresh,
   macroScore,
   industryScore,
   stockScore,
@@ -58,19 +62,20 @@ export function TargetPriceCard({
   const numAnalysts = liveTarget?.numberOfAnalysts ?? 0;
   const recommendation = liveTarget?.recommendation ?? "hold";
   const recMean = liveTarget?.recommendationMean ?? 3;
+  const sources = liveTarget?.sources ?? [];
+  const dataSource = liveTarget?.source ?? "";
 
   const upside = currentPrice > 0 && targetMean > 0
     ? ((targetMean - currentPrice) / currentPrice * 100).toFixed(1)
     : "0";
   const isUpside = Number(upside) >= 0;
-
   const rec = recLabel(recommendation);
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="py-4">
         {/* Formula + live target — single row */}
-        <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 flex-wrap">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 flex-wrap">
           <div className="text-center">
             <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Macro</div>
             <div className={`text-sm font-bold ${macro.color}`}>{macro.text}</div>
@@ -88,7 +93,7 @@ export function TargetPriceCard({
           <span className="text-slate-300 dark:text-zinc-600 text-lg font-light">=</span>
 
           {liveTargetLoading ? (
-            <span className="text-xs text-slate-400 animate-pulse">Loading...</span>
+            <span className="text-xs text-slate-400 animate-pulse">Analyzing...</span>
           ) : targetMean > 0 ? (
             <>
               <div className="text-center">
@@ -99,31 +104,42 @@ export function TargetPriceCard({
                   {formatPrice(targetMean, currency)}
                 </div>
               </div>
-              <span className="text-slate-200 dark:text-zinc-700 mx-1">|</span>
+              <span className="text-slate-200 dark:text-zinc-700 mx-0.5">|</span>
               <div className="text-center">
                 <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Consensus</div>
                 <div className={`text-sm font-bold ${rec.color}`}>
                   {rec.text} ({recMean.toFixed(1)})
                 </div>
               </div>
-              <span className="text-slate-200 dark:text-zinc-700 mx-1">|</span>
+              <span className="text-slate-200 dark:text-zinc-700 mx-0.5">|</span>
               <div className="text-center">
-                <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">High</div>
+                <div className="text-[10px] text-red-300 dark:text-red-800 mb-0.5">High</div>
                 <div className="text-sm font-bold text-red-400">{formatPrice(targetHigh, currency)}</div>
               </div>
               <div className="text-center">
-                <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-0.5">Low</div>
+                <div className="text-[10px] text-blue-300 dark:text-blue-800 mb-0.5">Low</div>
                 <div className="text-sm font-bold text-blue-400">{formatPrice(targetLow, currency)}</div>
               </div>
             </>
           ) : (
             <span className="text-xs text-slate-400 dark:text-zinc-500">No analyst data</span>
           )}
+
+          {/* Refresh button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRefresh}
+            disabled={liveTargetLoading}
+            className="h-7 text-[10px] px-2 ml-1"
+          >
+            {liveTargetLoading ? "..." : "Refresh"}
+          </Button>
         </div>
 
         {/* Upside/Downside bar */}
         {targetMean > 0 && currentPrice > 0 && (
-          <div className="flex items-center gap-3 px-2">
+          <div className="flex items-center gap-3 px-2 mb-3">
             <div className="flex-1">
               <div className="flex justify-between text-[10px] text-slate-400 dark:text-zinc-500 mb-1">
                 <span>Current {formatPrice(currentPrice, currency)}</span>
@@ -155,8 +171,35 @@ export function TargetPriceCard({
           </div>
         )}
 
-        <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-1">
-          Source: Yahoo Finance Analyst Estimates
+        {/* Analyst sources from Gemini */}
+        {sources.length > 0 && (
+          <div className="border-t border-slate-100 dark:border-zinc-800 pt-2 mb-2">
+            <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-1.5">Analyst Estimates</div>
+            <div className="space-y-1">
+              {sources.map((s: AnalystSource, i: number) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <SourceLink name={s.name} url={s.url} />
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${ratingColor(s.rating)}`}>
+                      {s.rating.toUpperCase()}
+                    </span>
+                    <span className="font-medium text-slate-700 dark:text-zinc-300 w-20 text-right">
+                      {formatPrice(s.target, currency)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-[9px] text-slate-300 dark:text-zinc-600">
+          <span>Source: {dataSource || "—"}</span>
+          <span>
+            {lastFetched
+              ? `Updated: ${lastFetched.toLocaleString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} · Auto 1h`
+              : "Not loaded"}
+          </span>
         </div>
       </CardContent>
     </Card>

@@ -301,7 +301,7 @@ export default function HomePage() {
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
-  const { data: liveTarget, loading: targetLoading } = useTargetPrice(selectedTicker, refreshKey);
+  const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, refresh: refreshTarget } = useTargetPrice(selectedTicker);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
@@ -379,6 +379,8 @@ export default function HomePage() {
           currency={data.currency}
           liveTarget={liveTarget}
           liveTargetLoading={targetLoading}
+          lastFetched={targetLastFetched}
+          onRefresh={refreshTarget}
           macroScore={data.macro.score}
           industryScore={data.industry.score}
           stockScore={data.stock.score}
