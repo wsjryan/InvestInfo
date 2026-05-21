@@ -301,6 +301,16 @@ export default function HomePage() {
           watchlist={watchlist.map((w) => ({ ticker: w.ticker, name: w.name }))}
           selected={selectedTicker}
           loading={quotesLoading}
+          onSelect={setSelectedTicker}
+          onReorder={(fromTicker, toTicker) => {
+            const fromIdx = watchlist.findIndex((w) => w.ticker === fromTicker);
+            const toIdx = watchlist.findIndex((w) => w.ticker === toTicker);
+            if (fromIdx === -1 || toIdx === -1) return;
+            const reordered = [...watchlist];
+            const [removed] = reordered.splice(fromIdx, 1);
+            reordered.splice(toIdx, 0, removed);
+            handleReorder(reordered);
+          }}
         />
 
         {/* Controls: Ticker info + Quote + Date + Period */}

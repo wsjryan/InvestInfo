@@ -4,15 +4,19 @@ import Link from "next/link";
 import { useAuthStore, useInitAuth, signInWithGoogle, signOut } from "@/lib/auth-store";
 import { supabaseConfigured } from "@/lib/supabase";
 import { useThemeStore, useThemeToggle, useInitTheme } from "@/lib/theme";
+import { useTZStore, useTZToggle, useInitTZ } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 
 export function AppHeader() {
   useInitAuth();
   useInitTheme();
+  useInitTZ();
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeToggle();
+  const tz = useTZStore((s) => s.tz);
+  const toggleTZ = useTZToggle();
   const hasSupabase = supabaseConfigured();
 
   return (
@@ -25,6 +29,9 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={toggleTZ} className="h-8 px-2 text-[11px] font-mono">
+            {tz === "Asia/Seoul" ? "KST" : "EST"}
+          </Button>
           <Button variant="ghost" size="sm" onClick={toggleTheme} className="h-8 w-8 p-0">
             {theme === "light" ? "🌙" : "☀️"}
           </Button>
