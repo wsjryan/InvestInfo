@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/date-picker";
 import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-manager";
 import { StockChart } from "@/components/stock-chart";
 import { LiveNews } from "@/components/live-news";
+import { LiveClock } from "@/components/live-clock";
 import { TargetPriceCard, type AnalystEstimate } from "@/components/target-price-card";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
@@ -290,12 +291,22 @@ export default function HomePage() {
     return "005930.KS";
   });
   const isMobile = useMediaQuery("(max-width: 640px)");
-  const [lastUpdated] = useState(() => new Date());
+  const [lastUpdated, setLastUpdated] = useState(() => new Date());
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefreshKey((k) => k + 1);
+      setLastUpdated(new Date());
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const data = MOCK_DATA[selectedTicker] ?? MOCK_DATA["005930.KS"];
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
-  const { quotes, loading: quotesLoading } = useQuotes(symbols);
+  const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
@@ -356,9 +367,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">{selectedTicker}</p>
-              <span className="text-[10px] text-slate-300 dark:text-zinc-600">
-                Last updated: {lastUpdated.toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit", hour12: false })}
-              </span>
+              <LiveClock />
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -422,7 +431,7 @@ export default function HomePage() {
         {/* Upcoming Events + Live News side by side on desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <UpcomingEvents events={data.events} />
-          <LiveNews ticker={selectedTicker} tickerName={data.name} />
+          <LiveNews key={`news-${selectedTicker}-${refreshKey}`} ticker={selectedTicker} tickerName={data.name} />
         </div>
 
         {/* Mock News (will be replaced by live data) */}
