@@ -12,7 +12,8 @@ import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-man
 import { StockChart } from "@/components/stock-chart";
 import { LiveNews } from "@/components/live-news";
 import { LiveClock } from "@/components/live-clock";
-import { TargetPriceCard, type AnalystEstimate } from "@/components/target-price-card";
+import { TargetPriceCard } from "@/components/target-price-card";
+import { useTargetPrice } from "@/hooks/use-target-price";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
@@ -31,7 +32,6 @@ type TickerData = {
   macro: { positive: FactorItem[]; negative: FactorItem[]; score: number }; // -1 to 1
   industry: { positive: FactorItem[]; negative: FactorItem[]; score: number };
   stock: { positive: FactorItem[]; negative: FactorItem[]; score: number };
-  estimates: AnalystEstimate[];
   news: NewsItem[];
   events: UpcomingEvent[];
 };
@@ -84,13 +84,6 @@ const MOCK_DATA: Record<string, TickerData> = {
         { text: "애널리스트 목표가 하향 (2건)", source: "증권사", date: "05/18 08:00" },
       ],
     },
-    estimates: [
-      { source: "삼성증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/68/20260515_company_468012000.pdf", target: 95000, rating: "buy", date: "2026.05.15 09:00" },
-      { source: "NH투자증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/16/20260512_company_516012000.pdf", target: 88000, rating: "buy", date: "2026.05.12 08:30" },
-      { source: "키움증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/34/20260518_company_334012000.pdf", target: 78000, rating: "hold", date: "2026.05.18 10:00" },
-      { source: "미래에셋증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/20/20260510_company_220012000.pdf", target: 92000, rating: "outperform", date: "2026.05.10 09:00" },
-      { source: "JP Morgan", sourceUrl: "https://www.jpmorgan.com/insights/research/stock-analysis", target: 85000, rating: "hold", date: "2026.05.08 16:00" },
-    ],
     news: [
       { title: "Fed 파월 의장, 추가 금리 인상 가능성 일축", source: "Reuters", sourceUrl: "https://www.reuters.com/", time: "09:30", sentiment: "positive", axis: "macro" },
       { title: "삼성전자 HBM3E 양산 계획 발표", source: "연합뉴스", sourceUrl: "https://www.yna.co.kr/", time: "10:15", sentiment: "positive", axis: "industry" },
@@ -154,12 +147,6 @@ const MOCK_DATA: Record<string, TickerData> = {
         { text: "CFO, 향후 CAPEX 대폭 증가 경고", source: "Earnings Call", sourceUrl: "https://abc.xyz/investor/", date: "05/14 17:30" },
       ],
     },
-    estimates: [
-      { source: "Goldman Sachs", sourceUrl: "https://www.google.com/search?q=Goldman+Sachs+Alphabet+GOOGL+target+price+2026", target: 210, rating: "buy", date: "2026.05.15 16:00" },
-      { source: "Morgan Stanley", sourceUrl: "https://www.google.com/search?q=Morgan+Stanley+Alphabet+GOOGL+price+target+2026", target: 205, rating: "outperform", date: "2026.05.12 09:30" },
-      { source: "Barclays", sourceUrl: "https://www.google.com/search?q=Barclays+Alphabet+GOOGL+rating+2026", target: 195, rating: "buy", date: "2026.05.10 08:00" },
-      { source: "Citi", sourceUrl: "https://www.google.com/search?q=Citi+Alphabet+GOOGL+target+price+2026", target: 185, rating: "hold", date: "2026.05.08 10:00" },
-    ],
     news: [
       { title: "Google I/O 2026: Gemini 2.5 공개, AI 에이전트 시대 선언", source: "Google Blog", sourceUrl: "https://blog.google/", time: "10:00", sentiment: "positive", axis: "stock" },
       { title: "Alphabet 시간외 +3.2% — I/O 발표 호재", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/", time: "16:30", sentiment: "positive", axis: "stock" },
@@ -223,12 +210,6 @@ const MOCK_DATA: Record<string, TickerData> = {
         { text: "미국 중국향 AI칩 수출 규제 확대 리스크", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/20 14:00" },
       ],
     },
-    estimates: [
-      { source: "삼성증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/68/20260514_company_468066000.pdf", target: 280000, rating: "buy", date: "2026.05.14 09:00" },
-      { source: "NH투자증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/16/20260510_company_516066000.pdf", target: 260000, rating: "buy", date: "2026.05.10 08:30" },
-      { source: "한국투자증권", sourceUrl: "https://stock.pstatic.net/stock-research/company/07/20260512_company_107066000.pdf", target: 250000, rating: "outperform", date: "2026.05.12 10:00" },
-      { source: "Goldman Sachs", sourceUrl: "https://www.google.com/search?q=Goldman+Sachs+SK+Hynix+target+price+2026", target: 240000, rating: "buy", date: "2026.05.08 16:00" },
-    ],
     news: [
       { title: "SK하이닉스, HBM3E 12H 양산 돌입", source: "공시", sourceUrl: "https://dart.fss.or.kr/", time: "09:00", sentiment: "positive", axis: "stock" },
       { title: "NVIDIA H200 수요 폭발 — HBM 수혜", source: "Reuters", sourceUrl: "https://www.reuters.com/", time: "10:30", sentiment: "positive", axis: "industry" },
@@ -313,7 +294,6 @@ export default function HomePage() {
     macro: { score: 0, positive: [], negative: [] },
     industry: { score: 0, positive: [], negative: [] },
     stock: { score: 0, positive: [], negative: [] },
-    estimates: [],
     news: [],
     events: [],
   };
@@ -321,6 +301,7 @@ export default function HomePage() {
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
+  const { data: liveTarget, loading: targetLoading } = useTargetPrice(selectedTicker, refreshKey);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
@@ -396,7 +377,8 @@ export default function HomePage() {
         <TargetPriceCard
           currentPrice={quotes[selectedTicker]?.price ?? 0}
           currency={data.currency}
-          estimates={data.estimates}
+          liveTarget={liveTarget}
+          liveTargetLoading={targetLoading}
           macroScore={data.macro.score}
           industryScore={data.industry.score}
           stockScore={data.stock.score}
