@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const name = TICKER_NAMES[symbol] ?? symbol;
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
 
     // Retry up to 3 times with backoff for rate limits
     let geminiRes: Response | null = null;
