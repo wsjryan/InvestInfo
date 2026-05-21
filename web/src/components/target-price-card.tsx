@@ -172,11 +172,33 @@ export function TargetPriceCard({
           </div>
         )}
 
-        {/* Reasoning */}
+        {/* Reasoning — structured by axis */}
         {reasoning && (
-          <div className="border-t border-slate-100 dark:border-zinc-800 pt-2 mb-2 px-1">
-            <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-1">Analysis Logic</div>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">{reasoning}</p>
+          <div className="border-t border-slate-100 dark:border-zinc-800 pt-3 mb-2 px-1">
+            <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-2">Analysis Logic</div>
+            <div className="space-y-2">
+              {reasoning.split(/→\s*/).map((section, i) => {
+                const tagMatch = section.match(/^\[(.+?)\]\s*/);
+                const tag = tagMatch?.[1] ?? "";
+                const text = tagMatch ? section.slice(tagMatch[0].length) : section;
+                if (!text.trim()) return null;
+                const tagColor = tag === "매크로" ? "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
+                  : tag === "산업" ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                  : tag === "종목" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400"
+                  : tag === "총평" ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                  : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400";
+                return (
+                  <div key={i} className="flex items-start gap-2">
+                    {tag && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 mt-0.5 font-medium ${tagColor}`}>
+                        {tag}
+                      </span>
+                    )}
+                    <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">{text.trim()}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
