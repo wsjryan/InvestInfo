@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { AppHeader } from "@/components/app-header";
 import { AISummaryCard } from "@/components/ai-summary-card";
 import { AxisCard, type FactorItem } from "@/components/axis-card";
-import { PeriodTabs, type Period } from "@/components/period-tabs";
+// PeriodTabs removed — Daily only for now
 import { NewsTimeline, type NewsItem } from "@/components/news-timeline";
 import { DatePicker } from "@/components/date-picker";
 import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-manager";
@@ -216,7 +216,6 @@ const DEFAULT_WATCHLIST: WatchlistItem[] = [
 // ─── Page ────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const [period, setPeriod] = useState<Period>("daily");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>(DEFAULT_WATCHLIST);
   const [selectedTicker, setSelectedTicker] = useState("005930.KS");
@@ -278,7 +277,6 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <DatePicker value={selectedDate} onChange={setSelectedDate} />
-            <PeriodTabs value={period} onChange={setPeriod} />
           </div>
         </div>
 
