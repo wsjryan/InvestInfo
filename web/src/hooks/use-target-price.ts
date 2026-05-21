@@ -19,6 +19,7 @@ export interface TargetPriceData {
   numberOfAnalysts: number;
   recommendation: string;
   recommendationMean: number;
+  reasoning?: string;
   sources?: AnalystSource[];
 }
 

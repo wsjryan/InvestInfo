@@ -104,6 +104,7 @@ Return ONLY a JSON object with these fields (no explanation):
   "numberOfAnalysts": <approximate number of analysts covering>,
   "recommendation": "buy" or "hold" or "sell",
   "recommendationMean": <1.0 to 5.0 where 1=strong buy, 5=strong sell>,
+  "reasoning": "<2-3 sentences in Korean explaining why this target price, key factors considered>",
   "sources": [
     {"name": "<analyst firm>", "target": <price>, "rating": "buy"|"hold"|"sell", "url": "<link to report or news article>"}
   ]
@@ -142,6 +143,7 @@ IMPORTANT: Use the MOST RECENT analyst data available. Target prices MUST be rea
       numberOfAnalysts: parsed.numberOfAnalysts ?? 0,
       recommendation: parsed.recommendation ?? "hold",
       recommendationMean: parsed.recommendationMean ?? 3,
+      reasoning: parsed.reasoning ?? "",
       sources: parsed.sources ?? [],
     };
 

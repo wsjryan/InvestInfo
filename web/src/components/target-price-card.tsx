@@ -63,6 +63,7 @@ export function TargetPriceCard({
   const recommendation = liveTarget?.recommendation ?? "hold";
   const recMean = liveTarget?.recommendationMean ?? 3;
   const sources = liveTarget?.sources ?? [];
+  const reasoning = liveTarget?.reasoning ?? "";
   const dataSource = liveTarget?.source ?? "";
 
   const upside = currentPrice > 0 && targetMean > 0
@@ -168,6 +169,14 @@ export function TargetPriceCard({
             <span className={`text-sm font-bold shrink-0 ${isUpside ? "text-red-500" : "text-blue-500"}`}>
               {isUpside ? "▲" : "▼"} {Math.abs(Number(upside))}%
             </span>
+          </div>
+        )}
+
+        {/* Reasoning */}
+        {reasoning && (
+          <div className="border-t border-slate-100 dark:border-zinc-800 pt-2 mb-2 px-1">
+            <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-1">Analysis Logic</div>
+            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">{reasoning}</p>
           </div>
         )}
 
