@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are a senior financial analyst. Analyze "${name}" (ticker: ${symbol}). ${currentPriceStr}
+            text: `You are a senior financial analyst. The current date and time is: ${new Date().toISOString()} (UTC). Analyze "${name}" (ticker: ${symbol}). ${currentPriceStr}
 
 Return ONLY a JSON object:
 {
@@ -140,6 +140,7 @@ Rules:
     const result = {
       symbol,
       source: "Gemini AI (analyst consensus)",
+      queryTime: new Date().toISOString(),
       currentPrice: 0,
       targetHigh: parsed.targetHigh ?? 0,
       targetLow: parsed.targetLow ?? 0,

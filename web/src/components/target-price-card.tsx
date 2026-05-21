@@ -65,6 +65,7 @@ export function TargetPriceCard({
   const sources = liveTarget?.sources ?? [];
   const reasoning = liveTarget?.reasoning ?? "";
   const dataSource = liveTarget?.source ?? "";
+  const queryTime = liveTarget?.queryTime ?? "";
 
   const upside = currentPrice > 0 && targetMean > 0
     ? ((targetMean - currentPrice) / currentPrice * 100).toFixed(1)
@@ -231,13 +232,20 @@ export function TargetPriceCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between text-[9px] text-slate-300 dark:text-zinc-600">
-          <span>Source: {dataSource || "—"}</span>
-          <span>
-            {lastFetched
-              ? `Updated: ${lastFetched.toLocaleString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} · Auto 1h`
-              : "Not loaded"}
-          </span>
+        <div className="text-[9px] text-slate-300 dark:text-zinc-600 space-y-0.5">
+          <div className="flex items-center justify-between">
+            <span>Source: {dataSource || "—"}</span>
+            <span>
+              {lastFetched
+                ? `Updated: ${lastFetched.toLocaleString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} · Auto 1h`
+                : "Not loaded"}
+            </span>
+          </div>
+          {queryTime && (
+            <div>
+              본 분석은 {new Date(queryTime).toLocaleString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} KST 기준으로 Gemini AI에 요청한 결과입니다.
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -12,6 +12,7 @@ export interface AnalystSource {
 
 export interface TargetPriceData {
   source: string;
+  queryTime?: string;
   currentPrice: number;
   targetHigh: number;
   targetLow: number;
