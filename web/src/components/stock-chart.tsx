@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTZStore } from "@/lib/timezone";
 
 interface Candle {
   time: number;
@@ -45,6 +46,9 @@ export function StockChart({ symbol }: StockChartProps) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
+  const tz = useTZStore((s) => s.tz);
+  // KST = UTC+9, EST = UTC-5 (EDT = UTC-4). Yahoo returns UTC timestamps.
+  const tzOffsetSec = tz === "Asia/Seoul" ? 9 * 3600 : -4 * 3600;
   const [selectedRange, setSelectedRange] = useState(0); // default 1min
   const [currency, setCurrency] = useState("USD");
   const [autoRefreshCount, setAutoRefreshCount] = useState(0);
@@ -71,7 +75,7 @@ export function StockChart({ symbol }: StockChartProps) {
         if (data.candles && data.candles.length > 0) {
           setCandles(data.candles);
           setCurrency(data.currency ?? "USD");
-          const lastTs = data.candles[data.candles.length - 1].time;
+          const lastTs = data.candles[data.candles.length - 1].time + tzOffsetSec;
           const d = new Date(lastTs * 1000);
           setLastCandle(`${String(d.getUTCMonth()+1).padStart(2,"0")}/${String(d.getUTCDate()).padStart(2,"0")} ${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}:${String(d.getUTCSeconds()).padStart(2,"0")}`);
         }
@@ -153,7 +157,7 @@ export function StockChart({ symbol }: StockChartProps) {
       }
 
       const formatted = candles.map((c) => ({
-        time: c.time as any,
+        time: (c.time + tzOffsetSec) as any,
         open: c.open,
         high: c.high,
         low: c.low,
@@ -178,13 +182,13 @@ export function StockChart({ symbol }: StockChartProps) {
         const d = param.seriesData.get(candleSeries);
         if (!d) { setTooltip(null); return; }
 
-        // Use UTC to match X-axis (exchange local time)
+        // param.time already has tzOffset applied, so use UTC methods to read it
         const ts = typeof param.time === "number"
           ? new Date(param.time * 1000)
           : new Date(`${(param.time as any).year}-${String((param.time as any).month).padStart(2,"0")}-${String((param.time as any).day).padStart(2,"0")}`);
         const timeStr = typeof param.time === "number"
           ? `${String(ts.getUTCMonth()+1).padStart(2,"0")}/${String(ts.getUTCDate()).padStart(2,"0")} ${String(ts.getUTCHours()).padStart(2,"0")}:${String(ts.getUTCMinutes()).padStart(2,"0")}`
-          : ts.toLocaleDateString("ko-KR", { month:"2-digit", day:"2-digit" });
+          : `${String(ts.getUTCMonth()+1).padStart(2,"0")}/${String(ts.getUTCDate()).padStart(2,"0")}`;
         const changeVal = d.close - d.open;
         const changePct = ((changeVal / d.open) * 100).toFixed(2);
         setTooltip({
@@ -218,7 +222,7 @@ export function StockChart({ symbol }: StockChartProps) {
         chartInstance.current = null;
       }
     };
-  }, [candles]);
+  }, [candles, tz]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card>
@@ -277,7 +281,7 @@ export function StockChart({ symbol }: StockChartProps) {
         )}
         <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-300 dark:text-zinc-600">
           <span>Source: Yahoo Finance</span>
-          <span>Last candle: {lastCandle || "—"} · Auto 15s</span>
+          <span>{tz === "Asia/Seoul" ? "KST" : "EST"} · Last: {lastCandle || "—"} · Auto 15s</span>
         </div>
       </CardContent>
     </Card>
