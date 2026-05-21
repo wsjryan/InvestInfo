@@ -28,10 +28,21 @@ const RANGE_OPTIONS = [
   { label: "5Y", range: "5y", interval: "1wk" },
 ];
 
+interface TooltipData {
+  time: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  change: string;
+  isUp: boolean;
+}
+
 export function StockChart({ symbol }: StockChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<any>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState(3); // default 3M
   const [currency, setCurrency] = useState("USD");
@@ -135,6 +146,37 @@ export function StockChart({ symbol }: StockChartProps) {
       chart.timeScale().fitContent();
       chartInstance.current = chart;
 
+      // Crosshair tooltip
+      const fmt = (v: number) =>
+        currency === "KRW"
+          ? `₩${v.toLocaleString("ko-KR")}`
+          : `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      chart.subscribeCrosshairMove((param: any) => {
+        if (!param.time || !param.seriesData) {
+          setTooltip(null);
+          return;
+        }
+        const d = param.seriesData.get(candleSeries);
+        if (!d) { setTooltip(null); return; }
+
+        const ts = typeof param.time === "number"
+          ? new Date(param.time * 1000)
+          : new Date(`${(param.time as any).year}-${String((param.time as any).month).padStart(2,"0")}-${String((param.time as any).day).padStart(2,"0")}`);
+        const timeStr = ts.toLocaleString("ko-KR", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit", hour12: false });
+        const changeVal = d.close - d.open;
+        const changePct = ((changeVal / d.open) * 100).toFixed(2);
+        setTooltip({
+          time: timeStr,
+          open: fmt(d.open),
+          high: fmt(d.high),
+          low: fmt(d.low),
+          close: fmt(d.close),
+          change: `${changeVal >= 0 ? "+" : ""}${fmt(changeVal)} (${changeVal >= 0 ? "+" : ""}${changePct}%)`,
+          isUp: changeVal >= 0,
+        });
+      });
+
       // Resize handler
       const resizeHandler = () => {
         if (chartRef.current && chart) {
@@ -194,7 +236,23 @@ export function StockChart({ symbol }: StockChartProps) {
             <span className="text-xs text-slate-400 dark:text-zinc-500">No chart data available</span>
           </div>
         ) : (
-          <div ref={chartRef} className="w-full" />
+          <div className="relative">
+            <div ref={chartRef} className="w-full" />
+            {tooltip && (
+              <div className="absolute top-2 left-3 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-xs pointer-events-none shadow-sm">
+                <div className="font-medium text-slate-700 dark:text-zinc-300 mb-1">{tooltip.time}</div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-slate-500 dark:text-zinc-400">
+                  <span>Open</span><span className="text-right">{tooltip.open}</span>
+                  <span>High</span><span className="text-right">{tooltip.high}</span>
+                  <span>Low</span><span className="text-right">{tooltip.low}</span>
+                  <span>Close</span><span className="text-right font-medium text-slate-800 dark:text-zinc-200">{tooltip.close}</span>
+                </div>
+                <div className={`mt-1 pt-1 border-t border-slate-100 dark:border-zinc-800 font-medium ${tooltip.isUp ? "text-red-500" : "text-blue-500"}`}>
+                  {tooltip.change}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>
