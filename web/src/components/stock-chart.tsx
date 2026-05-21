@@ -65,7 +65,7 @@ export function StockChart({ symbol }: StockChartProps) {
 
     let disposed = false;
 
-    import("lightweight-charts").then(({ createChart, ColorType }) => {
+    import("lightweight-charts").then((lc) => {
       if (disposed || !chartRef.current) return;
 
       // Clear previous chart
@@ -76,11 +76,11 @@ export function StockChart({ symbol }: StockChartProps) {
 
       const isDark = document.documentElement.classList.contains("dark");
 
-      const chart = createChart(chartRef.current, {
+      const chart = lc.createChart(chartRef.current, {
         width: chartRef.current.clientWidth,
         height: 300,
         layout: {
-          background: { type: ColorType.Solid, color: "transparent" },
+          background: { type: lc.ColorType.Solid, color: "transparent" },
           textColor: isDark ? "#a1a1aa" : "#64748b",
           fontSize: 11,
         },
@@ -96,19 +96,31 @@ export function StockChart({ symbol }: StockChartProps) {
         rightPriceScale: {
           borderColor: isDark ? "#3f3f46" : "#e2e8f0",
         },
-        crosshair: {
-          mode: 0,
-        },
       });
 
-      const candleSeries = chart.addCandlestickSeries({
-        upColor: "#22c55e",
-        downColor: "#ef4444",
-        borderUpColor: "#22c55e",
-        borderDownColor: "#ef4444",
-        wickUpColor: "#22c55e",
-        wickDownColor: "#ef4444",
-      });
+      // v5 API: addSeries with CandlestickSeries type
+      const CandlestickSeries = (lc as any).CandlestickSeries ?? (lc as any).CandlestickSeriesType;
+      let candleSeries: any;
+      if (CandlestickSeries) {
+        candleSeries = chart.addSeries(CandlestickSeries, {
+          upColor: "#22c55e",
+          downColor: "#ef4444",
+          borderUpColor: "#22c55e",
+          borderDownColor: "#ef4444",
+          wickUpColor: "#22c55e",
+          wickDownColor: "#ef4444",
+        });
+      } else {
+        // fallback for older versions
+        candleSeries = (chart as any).addCandlestickSeries({
+          upColor: "#22c55e",
+          downColor: "#ef4444",
+          borderUpColor: "#22c55e",
+          borderDownColor: "#ef4444",
+          wickUpColor: "#22c55e",
+          wickDownColor: "#ef4444",
+        });
+      }
 
       const formatted = candles.map((c) => ({
         time: c.time as any,
