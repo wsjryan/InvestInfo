@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { SourceLink } from "@/components/source-link";
 
 export interface NewsItem {
@@ -15,10 +17,29 @@ export interface NewsItem {
 
 const axisLabel = { macro: "Macro", industry: "Industry", stock: "Stock" };
 
+// Ticker → search queries
+const TICKER_QUERIES: Record<string, string> = {
+  "005930.KS": "삼성전자",
+  "000660.KS": "SK하이닉스",
+  GOOGL: "Google Alphabet",
+  AAPL: "Apple stock",
+  NVDA: "NVIDIA",
+  MSFT: "Microsoft",
+  TSLA: "Tesla",
+  META: "Meta Facebook",
+  AMZN: "Amazon",
+  MU: "Micron stock",
+  AMD: "AMD stock",
+  AVGO: "Broadcom",
+  NFLX: "Netflix stock",
+  "035420.KS": "네이버",
+  "035720.KS": "카카오",
+};
+
 function parseTime(t: string): number {
-  // "05/21 16:30" → sortable number
-  const parts = t.replace(/\//g, "").replace(/ /g, "").replace(/:/g, "");
-  return parseInt(parts, 10) || 0;
+  // "05. 20. 15:22:30" or "05/21 16:30" → sortable number
+  const cleaned = t.replace(/[.\/ ]/g, "").replace(/:/g, "");
+  return parseInt(cleaned, 10) || 0;
 }
 
 function sortByTime(items: NewsItem[]): NewsItem[] {
@@ -33,7 +54,7 @@ function NewsList({ items, emptyText }: { items: NewsItem[]; emptyText: string }
     <ul className="space-y-3">
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3">
-          <div className="text-[10px] text-slate-400 dark:text-zinc-500 w-24 shrink-0 pt-0.5 font-mono">
+          <div className="text-[10px] text-slate-400 dark:text-zinc-500 w-28 shrink-0 pt-0.5 font-mono">
             {item.time}
           </div>
           <div className="flex-1 min-w-0">
@@ -46,7 +67,7 @@ function NewsList({ items, emptyText }: { items: NewsItem[]; emptyText: string }
             </p>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="outline" className="text-[10px] h-4">
-                {axisLabel[item.axis]}
+                {axisLabel[item.axis] ?? item.axis}
               </Badge>
               <SourceLink name={item.source} url={item.sourceUrl} />
             </div>
@@ -57,44 +78,101 @@ function NewsList({ items, emptyText }: { items: NewsItem[]; emptyText: string }
   );
 }
 
-export function NewsTimeline({ items }: { items: NewsItem[] }) {
-  const positive = sortByTime(items.filter((n) => n.sentiment === "positive"));
-  const negative = sortByTime(items.filter((n) => n.sentiment === "negative"));
-  const neutral = sortByTime(items.filter((n) => n.sentiment === "neutral"));
+interface NewsTimelineProps {
+  ticker: string;
+  tickerName: string;
+  mockItems: NewsItem[];
+}
+
+export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProps) {
+  const [liveNews, setLiveNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [lastFetched, setLastFetched] = useState<Date | null>(null);
+
+  const fetchNews = useCallback(() => {
+    const query = TICKER_QUERIES[ticker] ?? tickerName;
+    setLoading(true);
+    fetch(`/api/news?q=${encodeURIComponent(query)}&_t=${Date.now()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setLiveNews(data.map((n: any) => ({ ...n, sentiment: "neutral" as const, axis: "stock" as const })));
+          setLastFetched(new Date());
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [ticker, tickerName]);
+
+  // Auto-fetch on mount + every hour
+  useEffect(() => {
+    fetchNews();
+    const interval = setInterval(fetchNews, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchNews]);
+
+  // Merge mock + live, deduplicate by title
+  const seen = new Set<string>();
+  const allNews: NewsItem[] = [];
+  for (const item of [...mockItems, ...liveNews]) {
+    const key = item.title.slice(0, 30);
+    if (!seen.has(key)) {
+      seen.add(key);
+      allNews.push(item);
+    }
+  }
+
+  const positive = sortByTime(allNews.filter((n) => n.sentiment === "positive"));
+  const negative = sortByTime(allNews.filter((n) => n.sentiment === "negative"));
+  const neutral = sortByTime(allNews.filter((n) => n.sentiment === "neutral"));
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">Daily News Timeline</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-semibold">News Timeline</CardTitle>
+          <div className="flex items-center gap-2">
+            {lastFetched && (
+              <span className="text-[10px] text-slate-300 dark:text-zinc-600">
+                {lastFetched.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchNews}
+              disabled={loading}
+              className="h-6 text-[10px] px-2"
+            >
+              {loading ? "..." : "Refresh"}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Positive / Bullish */}
           <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Badge variant="outline" className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 text-[10px]">
-                Positive {positive.length}
-              </Badge>
-            </div>
+            <Badge variant="outline" className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 text-[10px] mb-2">
+              Positive {positive.length}
+            </Badge>
             <NewsList items={positive} emptyText="No positive news" />
           </div>
-          {/* Negative / Bearish */}
           <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <Badge variant="outline" className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-[10px]">
-                Negative {negative.length}
-              </Badge>
-            </div>
+            <Badge variant="outline" className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-[10px] mb-2">
+              Negative {negative.length}
+            </Badge>
             <NewsList items={negative} emptyText="No negative news" />
           </div>
         </div>
-        {/* Neutral — below if any */}
         {neutral.length > 0 && (
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800">
-            <Badge variant="outline" className="text-[10px] mb-2">Neutral {neutral.length}</Badge>
+            <Badge variant="outline" className="text-[10px] mb-2">Latest {neutral.length}</Badge>
             <NewsList items={neutral} emptyText="" />
           </div>
         )}
+        <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
+          Source: Google News · Auto 1h
+        </div>
       </CardContent>
     </Card>
   );

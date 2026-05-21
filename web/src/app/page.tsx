@@ -10,7 +10,7 @@ import { NewsTimeline, type NewsItem } from "@/components/news-timeline";
 import { DatePicker } from "@/components/date-picker";
 import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-manager";
 import { StockChart } from "@/components/stock-chart";
-import { LiveNews } from "@/components/live-news";
+// LiveNews merged into NewsTimeline
 import { LiveClock } from "@/components/live-clock";
 import { TargetPriceCard } from "@/components/target-price-card";
 import { useTargetPrice } from "@/hooks/use-target-price";
@@ -426,14 +426,11 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Upcoming Events + Live News side by side on desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <UpcomingEvents events={data.events} />
-          <LiveNews key={`news-${selectedTicker}-${refreshKey}`} ticker={selectedTicker} tickerName={data.name} />
-        </div>
+        {/* Upcoming Events */}
+        <UpcomingEvents events={data.events} />
 
-        {/* Mock News (will be replaced by live data) */}
-        <NewsTimeline items={data.news} />
+        {/* News Timeline — live + mock merged, positive/negative split */}
+        <NewsTimeline ticker={selectedTicker} tickerName={data.name} mockItems={data.news} />
       </main>
     </TooltipProvider>
   );
