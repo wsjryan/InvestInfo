@@ -18,6 +18,31 @@ export interface NewsItem {
 
 const axisLabel = { macro: "Macro", industry: "Industry", stock: "Stock" };
 
+// Keyword-based sentiment classification
+const POSITIVE_KW = [
+  "상승", "급등", "호재", "매수", "buy", "상향", "서프라이즈", "beat", "outperform",
+  "increase", "raises", "upgrade", "surges", "rally", "bullish", "record", "성장",
+  "확대", "개선", "회복", "강세", "돌파", "신고가", "수혜", "호실적", "target raised",
+  "비중확대", "overweight", "재확인", "기대", "긍정", "upbeat", "gains", "soars",
+];
+const NEGATIVE_KW = [
+  "하락", "급락", "악재", "매도", "sell", "하향", "miss", "underperform",
+  "decrease", "downgrade", "plunges", "bearish", "위험", "리스크", "risk",
+  "규제", "소송", "하락세", "과매도", "경고", "우려", "약세", "감소", "둔화",
+  "target cut", "비중축소", "underweight", "압박", "부진", "적자", "손실",
+];
+
+function classifySentiment(title: string): "positive" | "negative" | "neutral" {
+  const t = title.toLowerCase();
+  let posScore = 0;
+  let negScore = 0;
+  for (const kw of POSITIVE_KW) if (t.includes(kw.toLowerCase())) posScore++;
+  for (const kw of NEGATIVE_KW) if (t.includes(kw.toLowerCase())) negScore++;
+  if (posScore > negScore) return "positive";
+  if (negScore > posScore) return "negative";
+  return "neutral";
+}
+
 // Ticker → search queries
 const TICKER_QUERIES: Record<string, string> = {
   "005930.KS": "삼성전자",
@@ -115,7 +140,11 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setLiveNews(data.map((n: any) => ({ ...n, sentiment: "neutral" as const, axis: "stock" as const })));
+          setLiveNews(data.map((n: any) => ({
+            ...n,
+            sentiment: classifySentiment(n.title),
+            axis: "stock" as const,
+          })));
           setLastFetched(new Date());
         }
         setLoading(false);

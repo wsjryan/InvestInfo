@@ -42,7 +42,7 @@ function parseRSSItems(xml: string): RSSItem[] {
       items.push({ title, link: link ?? "", source: source ?? "Unknown", pubDate: pubDate ?? "" });
     }
   }
-  return items.slice(0, 20);
+  return items.slice(0, 30);
 }
 
 function extractTag(xml: string, tag: string): string | null {
