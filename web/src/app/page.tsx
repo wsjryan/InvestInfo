@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/date-picker";
 import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-manager";
 import { StockChart } from "@/components/stock-chart";
 import { LiveNews } from "@/components/live-news";
+import { TargetPriceCard, type AnalystEstimate } from "@/components/target-price-card";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
@@ -23,11 +24,13 @@ import { useQuotes } from "@/hooks/use-quotes";
 
 type TickerData = {
   name: string;
+  currency: string;
   verdict: { verdict: Verdict; confidence: number; summary: string };
   aiSummary: { sentiment: "positive" | "negative" | "neutral"; summary: string };
-  macro: { positive: FactorItem[]; negative: FactorItem[] };
-  industry: { positive: FactorItem[]; negative: FactorItem[] };
-  stock: { positive: FactorItem[]; negative: FactorItem[] };
+  macro: { positive: FactorItem[]; negative: FactorItem[]; score: number }; // -1 to 1
+  industry: { positive: FactorItem[]; negative: FactorItem[]; score: number };
+  stock: { positive: FactorItem[]; negative: FactorItem[]; score: number };
+  estimates: AnalystEstimate[];
   news: NewsItem[];
   events: UpcomingEvent[];
 };
@@ -35,6 +38,7 @@ type TickerData = {
 const MOCK_DATA: Record<string, TickerData> = {
   "005930.KS": {
     name: "Samsung Electronics",
+    currency: "KRW",
     verdict: {
       verdict: "hold",
       confidence: 55,
@@ -47,6 +51,7 @@ const MOCK_DATA: Record<string, TickerData> = {
         "단기 중립 전망. CPI 둔화와 금리 동결 기대감이 긍정적이나, 지정학 리스크와 수출 규제 불확실성이 상쇄. 산업 내 AI 반도체 모멘텀은 지속되나 종목 레벨에서 내부자 매도 시그널 주의 필요.",
     },
     macro: {
+      score: 0.1,
       positive: [
         { text: "CPI 둔화 추세 지속 (3.2% → 2.9%)", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/series/CPIAUCSL", date: "05/18 08:30" },
         { text: "Fed 금리 동결 시사", source: "Reuters", sourceUrl: "https://www.reuters.com/business/finance/", date: "05/19 21:00" },
@@ -57,6 +62,7 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     industry: {
+      score: 0.4,
       positive: [
         { text: "AI 반도체 투자 확대", source: "TechCrunch", sourceUrl: "https://techcrunch.com/tag/semiconductors/", date: "05/19 11:00" },
         { text: "데이터센터 수주 증가", source: "Industry Report", date: "05/16 09:00" },
@@ -67,6 +73,7 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     stock: {
+      score: 0.0,
       positive: [
         { text: "2Q 실적 컨센서스 상회 (+12%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/dsab001/main.do?autoSearch=true&textCrpNm=삼성전자", date: "05/20 16:00" },
         { text: "신규 고객사 확보 공시", source: "DART", sourceUrl: "https://dart.fss.or.kr/dsab001/main.do?autoSearch=true&textCrpNm=삼성전자", date: "05/19 09:00" },
@@ -76,6 +83,13 @@ const MOCK_DATA: Record<string, TickerData> = {
         { text: "애널리스트 목표가 하향 (2건)", source: "증권사", date: "05/18 08:00" },
       ],
     },
+    estimates: [
+      { source: "삼성증권", sourceUrl: "https://www.samsungpop.com/", target: 95000, rating: "buy", date: "05/15" },
+      { source: "NH투자증권", sourceUrl: "https://www.nhqv.com/", target: 88000, rating: "buy", date: "05/12" },
+      { source: "키움증권", target: 78000, rating: "hold", date: "05/18" },
+      { source: "미래에셋증권", sourceUrl: "https://www.miraeasset.com/", target: 92000, rating: "outperform", date: "05/10" },
+      { source: "JP Morgan", sourceUrl: "https://www.jpmorgan.com/", target: 85000, rating: "hold", date: "05/08" },
+    ],
     news: [
       { title: "Fed 파월 의장, 추가 금리 인상 가능성 일축", source: "Reuters", sourceUrl: "https://www.reuters.com/", time: "09:30", sentiment: "positive", axis: "macro" },
       { title: "삼성전자 HBM3E 양산 계획 발표", source: "연합뉴스", sourceUrl: "https://www.yna.co.kr/", time: "10:15", sentiment: "positive", axis: "industry" },
@@ -92,6 +106,7 @@ const MOCK_DATA: Record<string, TickerData> = {
   },
   GOOGL: {
     name: "Alphabet (Google)",
+    currency: "USD",
     verdict: {
       verdict: "buy",
       confidence: 72,
@@ -104,6 +119,7 @@ const MOCK_DATA: Record<string, TickerData> = {
         "Google I/O 2026 (5/19) 행사에서 Gemini 2.5 발표, AI 검색 통합 강화, Android AI 기능 대폭 업데이트. 시장 반응 긍정적. 클라우드 사업 분기 성장률 28%로 가속. 매크로 우려 일부 상존하나 개별 종목 모멘텀이 압도.",
     },
     macro: {
+      score: 0.2,
       positive: [
         { text: "CPI 둔화 추세 — 기술주 밸류에이션 부담 완화", source: "FRED", sourceUrl: "https://fred.stlouisfed.org/series/CPIAUCSL", date: "05/18 08:30" },
         { text: "Fed 금리 동결 기조 유지", source: "Reuters", sourceUrl: "https://www.reuters.com/business/finance/", date: "05/19 21:00" },
@@ -114,6 +130,7 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     industry: {
+      score: 0.5,
       positive: [
         { text: "AI 검색 시장 급성장 — Google 점유율 90%+", source: "StatCounter", sourceUrl: "https://gs.statcounter.com/search-engine-market-share", date: "05/19 10:00" },
         { text: "클라우드 인프라 지출 증가 (YoY +22%)", source: "Gartner", sourceUrl: "https://www.gartner.com/en/newsroom", date: "05/17 09:00" },
@@ -125,6 +142,7 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     stock: {
+      score: 0.6,
       positive: [
         { text: "Google I/O 2026 — Gemini 2.5 발표, AI 통합 강화", source: "Google Blog", sourceUrl: "https://blog.google/technology/ai/", date: "05/19 18:00" },
         { text: "1Q 실적 서프라이즈 (EPS +15% beat)", source: "Earnings", sourceUrl: "https://abc.xyz/investor/", date: "05/14 16:30" },
@@ -135,6 +153,12 @@ const MOCK_DATA: Record<string, TickerData> = {
         { text: "CFO, 향후 CAPEX 대폭 증가 경고", source: "Earnings Call", sourceUrl: "https://abc.xyz/investor/", date: "05/14 17:30" },
       ],
     },
+    estimates: [
+      { source: "Goldman Sachs", sourceUrl: "https://www.goldmansachs.com/", target: 210, rating: "buy", date: "05/15" },
+      { source: "Morgan Stanley", sourceUrl: "https://www.morganstanley.com/", target: 205, rating: "outperform", date: "05/12" },
+      { source: "Barclays", sourceUrl: "https://www.barclays.com/", target: 195, rating: "buy", date: "05/10" },
+      { source: "Citi", sourceUrl: "https://www.citigroup.com/", target: 185, rating: "hold", date: "05/08" },
+    ],
     news: [
       { title: "Google I/O 2026: Gemini 2.5 공개, AI 에이전트 시대 선언", source: "Google Blog", sourceUrl: "https://blog.google/", time: "10:00", sentiment: "positive", axis: "stock" },
       { title: "Alphabet 시간외 +3.2% — I/O 발표 호재", source: "Bloomberg", sourceUrl: "https://www.bloomberg.com/", time: "16:30", sentiment: "positive", axis: "stock" },
@@ -152,6 +176,7 @@ const MOCK_DATA: Record<string, TickerData> = {
   },
   "000660.KS": {
     name: "SK Hynix",
+    currency: "KRW",
     verdict: {
       verdict: "buy",
       confidence: 68,
@@ -164,6 +189,7 @@ const MOCK_DATA: Record<string, TickerData> = {
         "HBM3E 독점 공급 지위 강화. AI 서버 수요 폭발로 매출/이익 동반 성장. DRAM 가격 반등 시작. 매크로 리스크 일부 상존하나 메모리 업사이클 진입 확인.",
     },
     macro: {
+      score: 0.1,
       positive: [
         { text: "글로벌 IT 투자 증가 추세", source: "Gartner", date: "05/15 09:00" },
         { text: "Fed 금리 동결 — 기술 투자 환경 호전", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/19 21:00" },
@@ -174,6 +200,7 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     industry: {
+      score: 0.7,
       positive: [
         { text: "HBM 시장 CAGR 45% 성장 전망", source: "TrendForce", date: "05/16 10:00" },
         { text: "DRAM 현물가 +12% (최근 1개월)", source: "DRAMeXchange", date: "05/20 11:00" },
@@ -185,6 +212,7 @@ const MOCK_DATA: Record<string, TickerData> = {
       ],
     },
     stock: {
+      score: 0.5,
       positive: [
         { text: "HBM3E NVIDIA 독점 공급 계약", source: "공시", sourceUrl: "https://dart.fss.or.kr/", date: "05/12 09:00" },
         { text: "1Q 영업이익 컨센서스 상회 (+22%)", source: "DART", sourceUrl: "https://dart.fss.or.kr/", date: "05/08 16:00" },
@@ -194,6 +222,12 @@ const MOCK_DATA: Record<string, TickerData> = {
         { text: "미국 중국향 AI칩 수출 규제 확대 리스크", source: "Reuters", sourceUrl: "https://www.reuters.com/", date: "05/20 14:00" },
       ],
     },
+    estimates: [
+      { source: "삼성증권", sourceUrl: "https://www.samsungpop.com/", target: 280000, rating: "buy", date: "05/14" },
+      { source: "NH투자증권", sourceUrl: "https://www.nhqv.com/", target: 260000, rating: "buy", date: "05/10" },
+      { source: "한국투자증권", target: 250000, rating: "outperform", date: "05/12" },
+      { source: "Goldman Sachs", sourceUrl: "https://www.goldmansachs.com/", target: 240000, rating: "buy", date: "05/08" },
+    ],
     news: [
       { title: "SK하이닉스, HBM3E 12H 양산 돌입", source: "공시", sourceUrl: "https://dart.fss.or.kr/", time: "09:00", sentiment: "positive", axis: "stock" },
       { title: "NVIDIA H200 수요 폭발 — HBM 수혜", source: "Reuters", sourceUrl: "https://www.reuters.com/", time: "10:30", sentiment: "positive", axis: "industry" },
@@ -331,6 +365,16 @@ export default function HomePage() {
             <DatePicker value={selectedDate} onChange={setSelectedDate} />
           </div>
         </div>
+
+        {/* Target Price — Macro × Industry × Stock = Price */}
+        <TargetPriceCard
+          currentPrice={quotes[selectedTicker]?.price ?? 0}
+          currency={data.currency}
+          estimates={data.estimates}
+          macroScore={data.macro.score}
+          industryScore={data.industry.score}
+          stockScore={data.stock.score}
+        />
 
         {/* Verdict — Buy/Hold/Sell */}
         <VerdictCard

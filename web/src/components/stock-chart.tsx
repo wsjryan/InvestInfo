@@ -19,6 +19,7 @@ interface StockChartProps {
 }
 
 const RANGE_OPTIONS = [
+  { label: "1min", range: "1d", interval: "1m" },
   { label: "5min", range: "1d", interval: "5m" },
   { label: "15min", range: "5d", interval: "15m" },
   { label: "1H", range: "1mo", interval: "1h" },
@@ -44,7 +45,7 @@ export function StockChart({ symbol }: StockChartProps) {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedRange, setSelectedRange] = useState(0); // default 5min
+  const [selectedRange, setSelectedRange] = useState(1); // default 5min
   const [currency, setCurrency] = useState("USD");
 
   // Fetch chart data
