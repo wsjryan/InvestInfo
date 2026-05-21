@@ -255,6 +255,10 @@ export function StockChart({ symbol }: StockChartProps) {
             )}
           </div>
         )}
+        <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-300 dark:text-zinc-600">
+          <span>Source: Yahoo Finance</span>
+          <span>Last updated: {new Date().toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12: false })}</span>
+        </div>
       </CardContent>
     </Card>
   );
