@@ -40,6 +40,38 @@ interface TooltipData {
   isUp: boolean;
 }
 
+// Market session detection
+function getMarketSession(symbol: string): { session: string; exchange: string; color: string } {
+  const now = new Date();
+  const isKR = symbol.endsWith(".KS");
+
+  if (isKR) {
+    // KRX: 09:00-15:30 KST
+    const kst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+    const h = kst.getHours(), m = kst.getMinutes();
+    const t = h * 60 + m;
+    const day = kst.getDay();
+    const isWeekday = day >= 1 && day <= 5;
+    if (!isWeekday) return { session: "Closed (Weekend)", exchange: "KRX", color: "text-slate-400" };
+    if (t < 540) return { session: "Pre-market", exchange: "KRX", color: "text-yellow-500" };
+    if (t < 930) return { session: "Regular (09:00-15:30)", exchange: "KRX", color: "text-green-500" };
+    return { session: "After-hours", exchange: "KRX", color: "text-slate-400" };
+  } else {
+    // US: Pre 04:00-09:30, Regular 09:30-16:00, After 16:00-20:00 ET
+    const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const h = et.getHours(), m = et.getMinutes();
+    const t = h * 60 + m;
+    const day = et.getDay();
+    const isWeekday = day >= 1 && day <= 5;
+    if (!isWeekday) return { session: "Closed (Weekend)", exchange: "NYSE/NASDAQ", color: "text-slate-400" };
+    if (t < 240) return { session: "Closed", exchange: "NYSE/NASDAQ", color: "text-slate-400" };
+    if (t < 570) return { session: "Pre-market (04:00-09:30 ET)", exchange: "NYSE/NASDAQ", color: "text-yellow-500" };
+    if (t < 960) return { session: "Regular (09:30-16:00 ET)", exchange: "NYSE/NASDAQ", color: "text-green-500" };
+    if (t < 1200) return { session: "After-hours (16:00-20:00 ET)", exchange: "NYSE/NASDAQ", color: "text-amber-500" };
+    return { session: "Closed", exchange: "NYSE/NASDAQ", color: "text-slate-400" };
+  }
+}
+
 export function StockChart({ symbol }: StockChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<any>(null);
@@ -53,6 +85,7 @@ export function StockChart({ symbol }: StockChartProps) {
   const [currency, setCurrency] = useState("USD");
   const [autoRefreshCount, setAutoRefreshCount] = useState(0);
   const [lastCandle, setLastCandle] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   // Auto-refresh chart every 60s
   useEffect(() => {
@@ -224,17 +257,31 @@ export function StockChart({ symbol }: StockChartProps) {
     };
   }, [candles, tz]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const marketInfo = getMarketSession(symbol);
+
   return (
     <Card>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold">
-            Price Chart
-            <span className="ml-2 text-xs font-normal text-slate-400 dark:text-zinc-500">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              className="text-sm font-semibold flex items-center gap-1 cursor-pointer hover:opacity-70"
+            >
+              <span className="text-[10px]">{collapsed ? "▶" : "▼"}</span>
+              Price Chart
+            </button>
+            <span className="text-xs font-normal text-slate-400 dark:text-zinc-500">
               {symbol} ({currency})
             </span>
-          </CardTitle>
-          <div className="flex gap-1">
+            <span className={`text-[10px] font-medium ${marketInfo.color}`}>
+              {marketInfo.session}
+            </span>
+            <span className="text-[10px] text-slate-300 dark:text-zinc-600">
+              {marketInfo.exchange}
+            </span>
+          </div>
+          {!collapsed && <div className="flex gap-1">
             {RANGE_OPTIONS.map((opt, i) => (
               <button
                 key={opt.label}
@@ -248,10 +295,10 @@ export function StockChart({ symbol }: StockChartProps) {
                 {opt.label}
               </button>
             ))}
-          </div>
+          </div>}
         </div>
       </CardHeader>
-      <CardContent className="pb-3">
+      {!collapsed && <CardContent className="pb-3">
         {loading ? (
           <div className="h-[240px] flex items-center justify-center">
             <span className="text-xs text-slate-400 dark:text-zinc-500 animate-pulse">Loading chart...</span>
@@ -283,7 +330,7 @@ export function StockChart({ symbol }: StockChartProps) {
           <span>Source: Yahoo Finance</span>
           <span>{tz === "Asia/Seoul" ? "KST" : "EST"} · Last: {lastCandle || "—"} · Auto 15s</span>
         </div>
-      </CardContent>
+      </CardContent>}
     </Card>
   );
 }
