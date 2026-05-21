@@ -8,6 +8,8 @@ import { PeriodTabs, type Period } from "@/components/period-tabs";
 import { NewsTimeline, type NewsItem } from "@/components/news-timeline";
 import { DatePicker } from "@/components/date-picker";
 import { WatchlistManager, type WatchlistItem } from "@/components/watchlist-manager";
+import { StockChart } from "@/components/stock-chart";
+import { LiveNews } from "@/components/live-news";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
@@ -320,11 +322,17 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Upcoming Events + News side by side on desktop */}
+        {/* Stock Chart */}
+        <StockChart symbol={selectedTicker} />
+
+        {/* Upcoming Events + Live News side by side on desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <UpcomingEvents events={data.events} />
-          <NewsTimeline items={data.news} />
+          <LiveNews ticker={selectedTicker} tickerName={data.name} />
         </div>
+
+        {/* Mock News (will be replaced by live data) */}
+        <NewsTimeline items={data.news} />
       </main>
     </TooltipProvider>
   );

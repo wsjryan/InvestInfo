@@ -1,0 +1,189 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+interface Candle {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+interface StockChartProps {
+  symbol: string;
+  range?: string;
+  interval?: string;
+}
+
+const RANGE_OPTIONS = [
+  { label: "1W", range: "5d", interval: "15m" },
+  { label: "1M", range: "1mo", interval: "1d" },
+  { label: "3M", range: "3mo", interval: "1d" },
+  { label: "6M", range: "6mo", interval: "1d" },
+  { label: "1Y", range: "1y", interval: "1wk" },
+  { label: "5Y", range: "5y", interval: "1mo" },
+];
+
+export function StockChart({ symbol }: StockChartProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInstance = useRef<any>(null);
+  const [candles, setCandles] = useState<Candle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRange, setSelectedRange] = useState(1); // default 1M
+  const [currency, setCurrency] = useState("USD");
+
+  // Fetch chart data
+  useEffect(() => {
+    if (!symbol) return;
+    let cancelled = false;
+    setLoading(true);
+
+    const opt = RANGE_OPTIONS[selectedRange];
+    fetch(`/api/chart?symbol=${encodeURIComponent(symbol)}&range=${opt.range}&interval=${opt.interval}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.candles) {
+          setCandles(data.candles);
+          setCurrency(data.currency ?? "USD");
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [symbol, selectedRange]);
+
+  // Render chart
+  useEffect(() => {
+    if (!chartRef.current || candles.length === 0) return;
+
+    let disposed = false;
+
+    import("lightweight-charts").then(({ createChart, ColorType }) => {
+      if (disposed || !chartRef.current) return;
+
+      // Clear previous chart
+      if (chartInstance.current) {
+        chartInstance.current.remove();
+        chartInstance.current = null;
+      }
+
+      const isDark = document.documentElement.classList.contains("dark");
+
+      const chart = createChart(chartRef.current, {
+        width: chartRef.current.clientWidth,
+        height: 300,
+        layout: {
+          background: { type: ColorType.Solid, color: "transparent" },
+          textColor: isDark ? "#a1a1aa" : "#64748b",
+          fontSize: 11,
+        },
+        grid: {
+          vertLines: { color: isDark ? "#27272a" : "#f1f5f9" },
+          horzLines: { color: isDark ? "#27272a" : "#f1f5f9" },
+        },
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: false,
+          borderColor: isDark ? "#3f3f46" : "#e2e8f0",
+        },
+        rightPriceScale: {
+          borderColor: isDark ? "#3f3f46" : "#e2e8f0",
+        },
+        crosshair: {
+          mode: 0,
+        },
+      });
+
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: "#22c55e",
+        downColor: "#ef4444",
+        borderUpColor: "#22c55e",
+        borderDownColor: "#ef4444",
+        wickUpColor: "#22c55e",
+        wickDownColor: "#ef4444",
+      });
+
+      const formatted = candles.map((c) => ({
+        time: c.time as any,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+      }));
+
+      candleSeries.setData(formatted);
+      chart.timeScale().fitContent();
+      chartInstance.current = chart;
+
+      // Resize handler
+      const resizeHandler = () => {
+        if (chartRef.current && chart) {
+          chart.applyOptions({ width: chartRef.current.clientWidth });
+        }
+      };
+      window.addEventListener("resize", resizeHandler);
+
+      return () => {
+        window.removeEventListener("resize", resizeHandler);
+      };
+    });
+
+    return () => {
+      disposed = true;
+      if (chartInstance.current) {
+        chartInstance.current.remove();
+        chartInstance.current = null;
+      }
+    };
+  }, [candles]);
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-semibold">
+            Price Chart
+            <span className="ml-2 text-xs font-normal text-slate-400 dark:text-zinc-500">
+              {symbol} ({currency})
+            </span>
+          </CardTitle>
+          <div className="flex gap-1">
+            {RANGE_OPTIONS.map((opt, i) => (
+              <button
+                key={opt.label}
+                onClick={() => setSelectedRange(i)}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  selectedRange === i
+                    ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-3">
+        {loading ? (
+          <div className="h-[300px] flex items-center justify-center">
+            <span className="text-xs text-slate-400 dark:text-zinc-500 animate-pulse">Loading chart...</span>
+          </div>
+        ) : candles.length === 0 ? (
+          <div className="h-[300px] flex items-center justify-center">
+            <span className="text-xs text-slate-400 dark:text-zinc-500">No chart data available</span>
+          </div>
+        ) : (
+          <div ref={chartRef} className="w-full" />
+        )}
+      </CardContent>
+    </Card>
+  );
+}

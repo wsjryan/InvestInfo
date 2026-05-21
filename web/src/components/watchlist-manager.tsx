@@ -30,15 +30,47 @@ interface WatchlistManagerProps {
 }
 
 const SUGGESTIONS: WatchlistItem[] = [
+  // US Tech
+  { ticker: "AAPL", name: "Apple", market: "NASDAQ" },
+  { ticker: "MSFT", name: "Microsoft", market: "NASDAQ" },
+  { ticker: "GOOGL", name: "Alphabet (Google)", market: "NASDAQ" },
+  { ticker: "AMZN", name: "Amazon", market: "NASDAQ" },
+  { ticker: "NVDA", name: "NVIDIA", market: "NASDAQ" },
+  { ticker: "META", name: "Meta (Facebook)", market: "NASDAQ" },
+  { ticker: "TSLA", name: "Tesla", market: "NASDAQ" },
+  { ticker: "AVGO", name: "Broadcom", market: "NASDAQ" },
+  { ticker: "AMD", name: "AMD", market: "NASDAQ" },
+  { ticker: "MU", name: "Micron", market: "NASDAQ" },
+  { ticker: "INTC", name: "Intel", market: "NASDAQ" },
+  { ticker: "CRM", name: "Salesforce", market: "NYSE" },
+  { ticker: "ORCL", name: "Oracle", market: "NYSE" },
+  { ticker: "NFLX", name: "Netflix", market: "NASDAQ" },
+  // US Others
+  { ticker: "BRK-B", name: "Berkshire Hathaway", market: "NYSE" },
+  { ticker: "JPM", name: "JPMorgan Chase", market: "NYSE" },
+  { ticker: "V", name: "Visa", market: "NYSE" },
+  { ticker: "UNH", name: "UnitedHealth", market: "NYSE" },
+  { ticker: "JNJ", name: "Johnson & Johnson", market: "NYSE" },
+  { ticker: "WMT", name: "Walmart", market: "NYSE" },
+  { ticker: "XOM", name: "ExxonMobil", market: "NYSE" },
+  { ticker: "LLY", name: "Eli Lilly", market: "NYSE" },
+  { ticker: "COST", name: "Costco", market: "NASDAQ" },
+  // Korea
   { ticker: "005930.KS", name: "Samsung Electronics", market: "KOSPI" },
   { ticker: "000660.KS", name: "SK Hynix", market: "KOSPI" },
-  { ticker: "GOOGL", name: "Alphabet (Google)", market: "NASDAQ" },
-  { ticker: "AAPL", name: "Apple", market: "NASDAQ" },
-  { ticker: "NVDA", name: "NVIDIA", market: "NASDAQ" },
-  { ticker: "MSFT", name: "Microsoft", market: "NASDAQ" },
-  { ticker: "TSLA", name: "Tesla", market: "NASDAQ" },
   { ticker: "035420.KS", name: "Naver", market: "KOSPI" },
   { ticker: "035720.KS", name: "Kakao", market: "KOSPI" },
+  { ticker: "051910.KS", name: "LG Chem", market: "KOSPI" },
+  { ticker: "006400.KS", name: "Samsung SDI", market: "KOSPI" },
+  { ticker: "005380.KS", name: "Hyundai Motor", market: "KOSPI" },
+  { ticker: "000270.KS", name: "Kia", market: "KOSPI" },
+  { ticker: "105560.KS", name: "KB Financial", market: "KOSPI" },
+  { ticker: "055550.KS", name: "Shinhan Financial", market: "KOSPI" },
+  { ticker: "068270.KS", name: "Celltrion", market: "KOSPI" },
+  { ticker: "207940.KS", name: "Samsung Biologics", market: "KOSPI" },
+  { ticker: "003670.KS", name: "POSCO Holdings", market: "KOSPI" },
+  { ticker: "034730.KS", name: "SK Inc.", market: "KOSPI" },
+  { ticker: "012330.KS", name: "Hyundai Mobis", market: "KOSPI" },
 ];
 
 export function WatchlistManager({
