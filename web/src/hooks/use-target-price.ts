@@ -27,11 +27,12 @@ export function useTargetPrice(symbol: string) {
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
-  const fetchTarget = useCallback(() => {
+  const fetchTarget = useCallback((forceRefresh = false) => {
     if (!symbol) return;
     setLoading(true);
 
-    fetch(`/api/target-price?symbol=${encodeURIComponent(symbol)}&_t=${Date.now()}`)
+    const refreshParam = forceRefresh ? "&refresh=1" : "";
+    fetch(`/api/target-price?symbol=${encodeURIComponent(symbol)}${refreshParam}&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((res) => {
         if (!res.error) {

@@ -11,7 +11,7 @@ interface TargetPriceCardProps {
   liveTarget: TargetPriceData | null;
   liveTargetLoading: boolean;
   lastFetched: Date | null;
-  onRefresh: () => void;
+  onRefresh: (forceRefresh?: boolean) => void;
   macroScore: number;
   industryScore: number;
   stockScore: number;
@@ -129,11 +129,11 @@ export function TargetPriceCard({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onRefresh}
+            onClick={() => onRefresh(true)}
             disabled={liveTargetLoading}
             className="h-7 text-[10px] px-2 ml-1"
           >
-            {liveTargetLoading ? "..." : "Refresh"}
+            {liveTargetLoading ? "..." : "Refresh (Gemini)"}
           </Button>
         </div>
 
