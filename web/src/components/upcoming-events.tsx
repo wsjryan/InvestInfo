@@ -10,6 +10,7 @@ export interface UpcomingEvent {
   impact: "high" | "medium" | "low";
   axis: "macro" | "industry" | "stock";
   description?: string;
+  url?: string;
   daysUntil: number;
 }
 
@@ -65,7 +66,12 @@ export function UpcomingEvents({ events }: { events: UpcomingEvent[] }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-slate-700 dark:text-zinc-300 leading-snug">
-                    {axisIcon[event.axis]} {event.title}
+                    {axisIcon[event.axis]}{" "}
+                    {event.url ? (
+                      <a href={event.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-500 dark:text-blue-400">
+                        {event.title}
+                      </a>
+                    ) : event.title}
                   </p>
                   {event.description && (
                     <p className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">

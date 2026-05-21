@@ -48,7 +48,11 @@ export function NewsTimeline({ items }: { items: NewsItem[] }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm leading-snug ${sentimentColor[item.sentiment]}`}>
-                    {item.title}
+                    {item.sourceUrl ? (
+                      <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        {item.title}
+                      </a>
+                    ) : item.title}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-[10px] h-4">
