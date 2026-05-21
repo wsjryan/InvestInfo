@@ -430,7 +430,7 @@ export default function HomePage() {
         <UpcomingEvents events={data.events} />
 
         {/* News Timeline — live + mock merged, positive/negative split */}
-        <NewsTimeline ticker={selectedTicker} tickerName={data.name} mockItems={data.news} />
+        <NewsTimeline ticker={selectedTicker} tickerName={data.name} mockItems={[]} />
       </main>
     </TooltipProvider>
   );

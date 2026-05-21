@@ -36,14 +36,20 @@ const TICKER_QUERIES: Record<string, string> = {
   "035720.KS": "카카오",
 };
 
-function parseTime(t: string): number {
-  // "05. 20. 15:22:30" or "05/21 16:30" → sortable number
-  const cleaned = t.replace(/[.\/ ]/g, "").replace(/:/g, "");
-  return parseInt(cleaned, 10) || 0;
+function parseTimeToMs(t: string): number {
+  // Try parsing various formats: "05. 20. 15:22:30", "05/21 16:30", etc.
+  // Normalize to "MM/DD HH:MM:SS" then compare
+  const cleaned = t.replace(/\. /g, "/").replace(/\./g, "/").trim();
+  // Try direct Date parse with year prefix
+  const withYear = `2026/${cleaned.replace(/ /, " ").replace(/\/\//g, "/")}`;
+  const d = new Date(withYear);
+  if (!isNaN(d.getTime())) return d.getTime();
+  // Fallback: strip non-digits and compare as number
+  return parseInt(t.replace(/\D/g, ""), 10) || 0;
 }
 
 function sortByTime(items: NewsItem[]): NewsItem[] {
-  return [...items].sort((a, b) => parseTime(b.time) - parseTime(a.time));
+  return [...items].sort((a, b) => parseTimeToMs(b.time) - parseTimeToMs(a.time));
 }
 
 function NewsList({ items, emptyText }: { items: NewsItem[]; emptyText: string }) {
@@ -107,7 +113,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   // Auto-fetch on mount + every hour
   useEffect(() => {
     fetchNews();
-    const interval = setInterval(fetchNews, 60 * 60 * 1000);
+    const interval = setInterval(fetchNews, 10 * 60 * 1000); // every 10min
     return () => clearInterval(interval);
   }, [fetchNews]);
 
@@ -171,7 +177,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
           </div>
         )}
         <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
-          Source: Google News · Auto 1h
+          Source: Google News · Auto 10min
         </div>
       </CardContent>
     </Card>
