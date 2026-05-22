@@ -57,7 +57,7 @@ export function TickerLogo({ ticker, size = 28, className = "" }: TickerLogoProp
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`https://www.google.com/s2/favicons?sz=128&domain=${domain}`}
+      src={`https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`}
       alt={ticker}
       width={size}
       height={size}
