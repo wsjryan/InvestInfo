@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export interface AnalystSource {
   name: string;
@@ -25,96 +25,93 @@ export interface TargetPriceData {
   sources?: AnalystSource[];
 }
 
-const targetCache: Record<string, { data: TargetPriceData; ts: number }> = {};
-const CACHE_TTL = 60 * 60 * 1000;
-const fetchingSet = new Set<string>();
+// Reads from the same analysis cache populated by useGeminiAnalysis prefetch
+// This avoids double Gemini calls
+import { getAnalysisCache } from "./use-gemini-analysis";
 
-async function fetchOneTarget(symbol: string, forceRefresh = false): Promise<TargetPriceData | null> {
-  const cached = targetCache[symbol];
-  if (!forceRefresh && cached && Date.now() - cached.ts < CACHE_TTL) {
-    return cached.data;
-  }
-  if (fetchingSet.has(symbol)) return cached?.data ?? null;
-
-  fetchingSet.add(symbol);
-  try {
-    const refreshParam = forceRefresh ? "&refresh=1" : "";
-    const res = await fetch(`/api/target-price?symbol=${encodeURIComponent(symbol)}${refreshParam}&_t=${Date.now()}`);
-    const json = await res.json();
-    if (!json.error) {
-      targetCache[symbol] = { data: json, ts: Date.now() };
-      return json;
-    }
-  } catch {} finally {
-    fetchingSet.delete(symbol);
-  }
-  return cached?.data ?? null;
-}
-
-/** Prefetch targets for all watchlist tickers */
-export function usePrefetchTargets(tickers: string[]) {
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (started.current || tickers.length === 0) return;
-    started.current = true;
-
-    const failed: string[] = [];
-    let i = 0;
-    const next = () => {
-      if (i >= tickers.length) {
-        if (failed.length > 0) {
-          setTimeout(() => {
-            failed.forEach((t, j) => setTimeout(() => fetchOneTarget(t), j * 6000));
-          }, 30000);
-        }
-        return;
-      }
-      const t = tickers[i++];
-      if (!targetCache[t]) {
-        fetchOneTarget(t).then((r) => {
-          if (!r) failed.push(t);
-          setTimeout(next, 5000);
-        });
-      } else {
-        setTimeout(next, 200);
-      }
-    };
-    next();
-  }, [tickers.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+export function usePrefetchTargets(_tickers: string[]) {
+  // No-op: targets are now included in analysis prefetch
 }
 
 export function useTargetPrice(symbol: string) {
-  const [data, setData] = useState<TargetPriceData | null>(() => targetCache[symbol]?.data ?? null);
+  const [data, setData] = useState<TargetPriceData | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   useEffect(() => {
-    const cached = targetCache[symbol];
-    if (cached && Date.now() - cached.ts < CACHE_TTL) {
-      setData(cached.data);
-      setLastFetched(new Date(cached.ts));
-      setLoading(false);
-      return;
+    const cached = getAnalysisCache(symbol);
+    if (cached && cached.targetMean > 0) {
+      setData({
+        source: cached.source ?? "Gemini AI",
+        queryTime: cached.queryTime,
+        currentPrice: 0,
+        targetHigh: cached.targetHigh ?? 0,
+        targetLow: cached.targetLow ?? 0,
+        targetMean: cached.targetMean ?? 0,
+        targetMedian: cached.targetMean ?? 0,
+        numberOfAnalysts: cached.numberOfAnalysts ?? 0,
+        recommendation: cached.recommendation ?? "hold",
+        recommendationMean: cached.recommendationMean ?? 3,
+        reasoning: cached.reasoning,
+        sources: cached.sources,
+      });
+      setLastFetched(new Date());
+    } else {
+      setData(null);
     }
-    setData(null);
-    setLoading(true);
-    fetchOneTarget(symbol).then((result) => {
-      setData(result);
-      if (result) setLastFetched(new Date());
-      setLoading(false);
-    });
   }, [symbol]);
 
-  const refresh = useCallback((forceRefresh = false) => {
-    setLoading(true);
-    fetchOneTarget(symbol, forceRefresh).then((result) => {
-      if (result) {
-        setData(result);
+  // Listen for analysis cache updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const cached = getAnalysisCache(symbol);
+      if (cached && cached.targetMean > 0 && !data) {
+        setData({
+          source: cached.source ?? "Gemini AI",
+          queryTime: cached.queryTime,
+          currentPrice: 0,
+          targetHigh: cached.targetHigh ?? 0,
+          targetLow: cached.targetLow ?? 0,
+          targetMean: cached.targetMean ?? 0,
+          targetMedian: cached.targetMean ?? 0,
+          numberOfAnalysts: cached.numberOfAnalysts ?? 0,
+          recommendation: cached.recommendation ?? "hold",
+          recommendationMean: cached.recommendationMean ?? 3,
+          reasoning: cached.reasoning,
+          sources: cached.sources,
+        });
         setLastFetched(new Date());
       }
-      setLoading(false);
-    });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [symbol, data]);
+
+  const refresh = useCallback((_forceRefresh = false) => {
+    // Trigger via analysis refresh
+    setLoading(true);
+    fetch(`/api/analysis?symbol=${encodeURIComponent(symbol)}&refresh=1&_t=${Date.now()}`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res.error && res.targetMean > 0) {
+          setData({
+            source: res.source ?? "Gemini AI",
+            queryTime: res.queryTime,
+            currentPrice: 0,
+            targetHigh: res.targetHigh ?? 0,
+            targetLow: res.targetLow ?? 0,
+            targetMean: res.targetMean ?? 0,
+            targetMedian: res.targetMean ?? 0,
+            numberOfAnalysts: res.numberOfAnalysts ?? 0,
+            recommendation: res.recommendation ?? "hold",
+            recommendationMean: res.recommendationMean ?? 3,
+            reasoning: res.reasoning,
+            sources: res.sources,
+          });
+          setLastFetched(new Date());
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [symbol]);
 
   return { data, loading, lastFetched, refresh };

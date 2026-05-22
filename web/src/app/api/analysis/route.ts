@@ -4,11 +4,15 @@ const TICKER_NAMES: Record<string, string> = {
   "005930.KS": "Samsung Electronics", "000660.KS": "SK Hynix", GOOGL: "Alphabet (Google)",
   AAPL: "Apple", NVDA: "NVIDIA", MSFT: "Microsoft", TSLA: "Tesla", META: "Meta",
   AMZN: "Amazon", MU: "Micron", AMD: "AMD", AVGO: "Broadcom", TSM: "TSMC",
-  NFLX: "Netflix", "035420.KS": "Naver", "035720.KS": "Kakao",
+  NFLX: "Netflix", INTC: "Intel", QCOM: "Qualcomm", CRM: "Salesforce",
+  "035420.KS": "Naver", "035720.KS": "Kakao", "005380.KS": "Hyundai Motor",
+  "051910.KS": "LG Chem", "006400.KS": "Samsung SDI", "003670.KS": "POSCO Holdings",
+  "068270.KS": "Celltrion", "207940.KS": "Samsung Biologics",
+  ASML: "ASML", SAP: "SAP", NVO: "Novo Nordisk", BABA: "Alibaba",
 };
 
 const cache: Record<string, { data: any; ts: number }> = {};
-const CACHE_TTL = 60 * 60 * 1000; // 1hr
+const CACHE_TTL = 60 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
   const symbol = req.nextUrl.searchParams.get("symbol");
@@ -23,7 +27,7 @@ export async function GET(req: NextRequest) {
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) return NextResponse.json({ error: "No API key" }, { status: 500 });
 
-  // Get current price
+  // Get current price from Yahoo
   let priceInfo = "";
   try {
     const qRes = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`, { cache: "no-store" });
@@ -41,50 +45,49 @@ export async function GET(req: NextRequest) {
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
 
     let res: Response | null = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 2; attempt++) {
       res = await fetch(geminiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are a senior investment analyst. Current datetime: ${now} (UTC).
-Analyze "${name}" (${symbol}). ${priceInfo}
+              text: `You are a senior investment analyst. Current: ${now} (UTC). Analyze "${name}" (${symbol}). ${priceInfo}
 
-Return ONLY a JSON object:
+Return ONLY JSON:
 {
   "verdict": "strong_buy"|"buy"|"hold"|"sell"|"strong_sell",
   "confidence": <0-100>,
-  "verdictSummary": "<2 sentences in Korean: overall investment recommendation>",
+  "verdictSummary": "<2 sentences Korean>",
   "aiSentiment": "positive"|"negative"|"neutral",
-  "aiSummary": "<3 sentences in Korean: comprehensive summary covering macro, industry, stock factors>",
-  "macro": {
-    "score": <-1.0 to 1.0>,
-    "positive": [{"text":"<Korean, concise>","source":"<name>","sourceUrl":"<Google News search URL>","date":"<MM/DD HH:MM>"}],
-    "negative": [{"text":"...","source":"...","sourceUrl":"...","date":"..."}]
-  },
-  "industry": { "score": <-1.0 to 1.0>, "positive": [...], "negative": [...] },
-  "stock": { "score": <-1.0 to 1.0>, "positive": [...], "negative": [...] },
-  "events": [
-    {"date":"<MM/DD>","title":"<event name>","type":"earnings"|"conference"|"economic"|"policy"|"product","impact":"high"|"medium"|"low","axis":"macro"|"industry"|"stock","description":"<Korean>","url":"<relevant URL>","daysUntil":<number>}
-  ]
+  "aiSummary": "<3 sentences Korean covering macro+industry+stock>",
+  "macro": {"score":<-1 to 1>,"positive":[{"text":"<Korean ≤25chars>","source":"<name>","sourceUrl":"<Google News search URL>","date":"<MM/DD HH:MM>"}],"negative":[...]},
+  "industry": {"score":<-1 to 1>,"positive":[...],"negative":[...]},
+  "stock": {"score":<-1 to 1>,"positive":[...],"negative":[...]},
+  "events": [{"date":"<MM/DD>","title":"<name>","type":"earnings"|"conference"|"economic"|"policy"|"product","impact":"high"|"medium"|"low","axis":"macro"|"industry"|"stock","description":"<Korean>","url":"<URL>","daysUntil":<num>}],
+  "targetHigh": <number>, "targetLow": <number>, "targetMean": <number>,
+  "numberOfAnalysts": <number>,
+  "recommendation": "buy"|"hold"|"sell",
+  "recommendationMean": <1.0-5.0>,
+  "reasoning": "<Korean: [매크로] ... → [산업] ... → [종목] ... → [총평] ...>",
+  "analystSources": [{"name":"<firm>","target":<price>,"rating":"buy"|"hold"|"sell","reason":"<1 sentence Korean>","url":"<Google News search URL for this report>"}]
 }
 
 Rules:
-- Each axis: 2-4 factors (mix positive/negative). Texts under 25 chars Korean.
-- sourceUrl: Google News search URL for actual articles, not homepages.
-- date: use recent real dates for factors.
-- events: upcoming 30 days, 3-5 items. Include earnings, FOMC, industry conferences etc.
-- verdict and summaries in Korean.
-- Be balanced — acknowledge both bull and bear cases.`
+- Each axis: 2-4 factors. sourceUrl = Google News search for actual article.
+- Target prices realistic vs current price (±30%). KRW for .KS, USD for US.
+- reasoning: [매크로]→[산업]→[종목]→[총평] sections.
+- analystSources: 3-5 firms with reasons. URLs = Google News search, NOT homepages.
+- events: 3-5 items within 30 days.
+- Be balanced.`
             }]
           }],
           generationConfig: { temperature: 0.2 }
         }),
       });
       if (res.ok) break;
-      if (res.status === 429 && attempt < 2) {
-        await new Promise((r) => setTimeout(r, (attempt + 1) * 5000));
+      if (res.status === 429 && attempt < 1) {
+        await new Promise((r) => setTimeout(r, 3000));
         continue;
       }
     }
@@ -95,20 +98,31 @@ Rules:
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("No JSON");
 
-    const parsed = JSON.parse(match[0]);
+    const p = JSON.parse(match[0]);
 
     const result = {
-      symbol,
-      queryTime: now,
-      verdict: parsed.verdict ?? "hold",
-      confidence: parsed.confidence ?? 50,
-      verdictSummary: parsed.verdictSummary ?? "",
-      aiSentiment: parsed.aiSentiment ?? "neutral",
-      aiSummary: parsed.aiSummary ?? "",
-      macro: parsed.macro ?? { score: 0, positive: [], negative: [] },
-      industry: parsed.industry ?? { score: 0, positive: [], negative: [] },
-      stock: parsed.stock ?? { score: 0, positive: [], negative: [] },
-      events: parsed.events ?? [],
+      symbol, queryTime: now,
+      // Analysis
+      verdict: p.verdict ?? "hold",
+      confidence: p.confidence ?? 50,
+      verdictSummary: p.verdictSummary ?? "",
+      aiSentiment: p.aiSentiment ?? "neutral",
+      aiSummary: p.aiSummary ?? "",
+      macro: p.macro ?? { score: 0, positive: [], negative: [] },
+      industry: p.industry ?? { score: 0, positive: [], negative: [] },
+      stock: p.stock ?? { score: 0, positive: [], negative: [] },
+      events: p.events ?? [],
+      // Target price
+      source: "Gemini AI",
+      targetHigh: p.targetHigh ?? 0,
+      targetLow: p.targetLow ?? 0,
+      targetMean: p.targetMean ?? 0,
+      targetMedian: p.targetMean ?? 0,
+      numberOfAnalysts: p.numberOfAnalysts ?? 0,
+      recommendation: p.recommendation ?? "hold",
+      recommendationMean: p.recommendationMean ?? 3,
+      reasoning: p.reasoning ?? "",
+      sources: p.analystSources ?? [],
     };
 
     cache[symbol] = { data: result, ts: Date.now() };

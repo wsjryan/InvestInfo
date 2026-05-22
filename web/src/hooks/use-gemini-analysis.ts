@@ -17,7 +17,13 @@ export interface GeminiAnalysis {
 }
 
 // Global client-side cache shared across all instances
-const analysisCache: Record<string, { data: GeminiAnalysis; ts: number }> = {};
+const analysisCache: Record<string, { data: any; ts: number }> = {};
+
+/** Read from cache (used by useTargetPrice) */
+export function getAnalysisCache(symbol: string): any | null {
+  const c = analysisCache[symbol];
+  return c ? c.data : null;
+}
 const CACHE_TTL = 60 * 60 * 1000; // 1hr
 const fetchingSet = new Set<string>(); // prevent duplicate fetches
 
