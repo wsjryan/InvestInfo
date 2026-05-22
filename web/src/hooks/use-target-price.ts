@@ -59,14 +59,25 @@ export function usePrefetchTargets(tickers: string[]) {
     if (started.current || tickers.length === 0) return;
     started.current = true;
 
+    const failed: string[] = [];
     let i = 0;
     const next = () => {
-      if (i >= tickers.length) return;
+      if (i >= tickers.length) {
+        if (failed.length > 0) {
+          setTimeout(() => {
+            failed.forEach((t, j) => setTimeout(() => fetchOneTarget(t), j * 6000));
+          }, 30000);
+        }
+        return;
+      }
       const t = tickers[i++];
       if (!targetCache[t]) {
-        fetchOneTarget(t).then(() => setTimeout(next, 3000));
+        fetchOneTarget(t).then((r) => {
+          if (!r) failed.push(t);
+          setTimeout(next, 5000);
+        });
       } else {
-        setTimeout(next, 100);
+        setTimeout(next, 200);
       }
     };
     next();

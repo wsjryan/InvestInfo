@@ -52,14 +52,26 @@ export function usePrefetchAnalysis(tickers: string[]) {
     started.current = true;
 
     // Stagger fetches: 1 per 3 seconds to avoid Gemini 429
+    const failed: string[] = [];
     let i = 0;
     const next = () => {
-      if (i >= tickers.length) return;
+      if (i >= tickers.length) {
+        // Retry failed ones after 30s
+        if (failed.length > 0) {
+          setTimeout(() => {
+            failed.forEach((t, j) => setTimeout(() => fetchOne(t), j * 6000));
+          }, 30000);
+        }
+        return;
+      }
       const t = tickers[i++];
       if (!analysisCache[t]) {
-        fetchOne(t).then(() => setTimeout(next, 3000));
+        fetchOne(t).then((r) => {
+          if (!r) failed.push(t);
+          setTimeout(next, 5000); // 5s gap to avoid 429
+        });
       } else {
-        setTimeout(next, 100); // already cached, skip quickly
+        setTimeout(next, 200);
       }
     };
     next();
