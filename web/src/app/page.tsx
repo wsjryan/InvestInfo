@@ -14,6 +14,7 @@ import { StockChart } from "@/components/stock-chart";
 import { LiveClock } from "@/components/live-clock";
 import { TargetPriceCard } from "@/components/target-price-card";
 import { useTargetPrice } from "@/hooks/use-target-price";
+import { useGeminiAnalysis } from "@/hooks/use-gemini-analysis";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
@@ -297,11 +298,25 @@ export default function HomePage() {
     news: [],
     events: [],
   };
-  const data = MOCK_DATA[selectedTicker] ?? fallbackData;
+  // Merge: mock > gemini > fallback
+  const mockData = MOCK_DATA[selectedTicker];
+  const ga = geminiAnalysis;
+  const data = mockData ?? (ga ? {
+    name: selectedWatchItem?.name ?? selectedTicker,
+    currency: selectedTicker.endsWith(".KS") ? "KRW" : "USD",
+    verdict: { verdict: ga.verdict as any, confidence: ga.confidence, summary: ga.verdictSummary },
+    aiSummary: { sentiment: ga.aiSentiment as any, summary: ga.aiSummary },
+    macro: ga.macro,
+    industry: ga.industry,
+    stock: ga.stock,
+    news: [],
+    events: ga.events,
+  } : fallbackData);
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
   const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, refresh: refreshTarget } = useTargetPrice(selectedTicker);
+  const { data: geminiAnalysis, loading: geminiLoading, refresh: refreshGemini } = useGeminiAnalysis(selectedTicker);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
@@ -397,8 +412,8 @@ export default function HomePage() {
         <AISummaryCard
           ticker={selectedTicker}
           sentiment={data.aiSummary.sentiment}
-          summary={data.aiSummary.summary}
-          updatedAt={selectedDate.toLocaleDateString("ko-KR") + " 16:30 KST"}
+          summary={geminiLoading ? "AI 분석 중..." : data.aiSummary.summary}
+          updatedAt={ga?.queryTime ? new Date(ga.queryTime).toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }) + " KST (Gemini)" : selectedDate.toLocaleDateString("ko-KR") + " KST"}
         />
 
         {/* 3-Axis Cards */}
