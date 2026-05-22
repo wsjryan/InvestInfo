@@ -15,7 +15,8 @@ import { LiveClock } from "@/components/live-clock";
 import { TargetPriceCard } from "@/components/target-price-card";
 import { TickerLogo } from "@/components/ticker-logo";
 import { useTargetPrice } from "@/hooks/use-target-price";
-import { useGeminiAnalysis } from "@/hooks/use-gemini-analysis";
+import { useGeminiAnalysis, usePrefetchAnalysis } from "@/hooks/use-gemini-analysis";
+import { usePrefetchTargets } from "@/hooks/use-target-price";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
@@ -317,6 +318,10 @@ export default function HomePage() {
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
+
+  // Prefetch all watchlist data in background (staggered)
+  usePrefetchAnalysis(symbols);
+  usePrefetchTargets(symbols);
   const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, refresh: refreshTarget } = useTargetPrice(selectedTicker);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
