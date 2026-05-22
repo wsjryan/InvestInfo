@@ -122,8 +122,8 @@ Rules:
       }),
       });
       if (geminiRes.ok) break;
-      if (geminiRes.status === 429 && attempt < 2) {
-        await new Promise((r) => setTimeout(r, (attempt + 1) * 5000)); // 5s, 10s backoff
+      if (geminiRes.status === 429 && attempt < 1) {
+        await new Promise((r) => setTimeout(r, 3000)); // 3s single retry
         continue;
       }
     }

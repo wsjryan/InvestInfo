@@ -43,11 +43,9 @@ export function useGeminiAnalysis(symbol: string) {
       });
   }, [symbol]);
 
-  // Auto-fetch on mount + every hour
+  // Fetch on mount (server-side 1hr cache handles freshness)
   useEffect(() => {
     fetchAnalysis();
-    const interval = setInterval(() => fetchAnalysis(), 60 * 60 * 1000);
-    return () => clearInterval(interval);
   }, [fetchAnalysis]);
 
   return { data, loading, error, refresh: fetchAnalysis };

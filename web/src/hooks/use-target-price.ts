@@ -47,11 +47,9 @@ export function useTargetPrice(symbol: string) {
       .catch(() => setLoading(false));
   }, [symbol]);
 
-  // Auto-fetch on mount + every hour
+  // Only fetch on mount (cached server-side), no auto-refresh to avoid 429
   useEffect(() => {
     fetchTarget();
-    const interval = setInterval(fetchTarget, 60 * 60 * 1000); // 1 hour
-    return () => clearInterval(interval);
   }, [fetchTarget]);
 
   return { data, loading, lastFetched, refresh: fetchTarget };

@@ -11,7 +11,7 @@ interface TZState {
 }
 
 export const useTZStore = create<TZState>((set) => ({
-  tz: "Asia/Seoul",
+  tz: "Asia/Seoul" as TZ, // KST default
   setTZ: (tz) => set({ tz }),
 }));
 
