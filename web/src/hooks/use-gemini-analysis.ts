@@ -21,6 +21,12 @@ export function useGeminiAnalysis(symbol: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset on ticker change
+  useEffect(() => {
+    setData(null);
+    setError(null);
+  }, [symbol]);
+
   const fetchAnalysis = useCallback((forceRefresh = false) => {
     if (!symbol) return;
     setLoading(true);

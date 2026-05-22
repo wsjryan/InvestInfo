@@ -30,6 +30,11 @@ export function useTargetPrice(symbol: string) {
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
+  // Reset on ticker change
+  useEffect(() => {
+    setData(null);
+  }, [symbol]);
+
   const fetchTarget = useCallback((forceRefresh = false) => {
     if (!symbol) return;
     setLoading(true);
