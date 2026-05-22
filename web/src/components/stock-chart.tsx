@@ -270,6 +270,7 @@ export function StockChart({ symbol }: StockChartProps) {
             >
               <span className="text-[10px]">{collapsed ? "▶" : "▼"}</span>
               Price Chart
+              {collapsed && <span className="text-[10px] font-normal text-slate-400 dark:text-zinc-500 ml-1">(~2-3s to load)</span>}
             </button>
             <span className="text-xs font-normal text-slate-400 dark:text-zinc-500">
               {symbol} ({currency})
