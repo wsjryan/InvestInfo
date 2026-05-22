@@ -13,6 +13,7 @@ import { StockChart } from "@/components/stock-chart";
 // LiveNews merged into NewsTimeline
 import { LiveClock } from "@/components/live-clock";
 import { TargetPriceCard } from "@/components/target-price-card";
+import { TickerLogo } from "@/components/ticker-logo";
 import { useTargetPrice } from "@/hooks/use-target-price";
 import { useGeminiAnalysis } from "@/hooks/use-gemini-analysis";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
@@ -372,6 +373,7 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
+              <TickerLogo ticker={selectedTicker} size={32} />
               <h2 className="text-lg font-bold">{data.name}</h2>
               <QuoteBadge quote={quotes[selectedTicker]} loading={quotesLoading} />
             </div>

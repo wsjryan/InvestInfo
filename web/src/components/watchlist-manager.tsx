@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { TickerLogo } from "@/components/ticker-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -466,7 +467,7 @@ export function WatchlistManager({
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
               }`}
             >
-              <span className="opacity-30 text-[10px]">⠿</span>
+              <TickerLogo ticker={item.ticker} size={16} />
               {item.name}
               <span className="text-[10px] opacity-60">{item.market}</span>
             </button>
