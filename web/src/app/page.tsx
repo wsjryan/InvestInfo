@@ -299,6 +299,7 @@ export default function HomePage() {
     news: [],
     events: [],
   };
+  const { data: geminiAnalysis, loading: geminiLoading, refresh: refreshGemini } = useGeminiAnalysis(selectedTicker);
   // Merge: mock > gemini > fallback
   const mockData = MOCK_DATA[selectedTicker];
   const ga = geminiAnalysis;
@@ -317,7 +318,6 @@ export default function HomePage() {
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
   const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, refresh: refreshTarget } = useTargetPrice(selectedTicker);
-  const { data: geminiAnalysis, loading: geminiLoading, refresh: refreshGemini } = useGeminiAnalysis(selectedTicker);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
