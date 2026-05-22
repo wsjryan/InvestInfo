@@ -57,7 +57,7 @@ export function TickerLogo({ ticker, size = 28, className = "" }: TickerLogoProp
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`https://logo.clearbit.com/${domain}`}
+      src={`https://www.google.com/s2/favicons?sz=128&domain=${domain}`}
       alt={ticker}
       width={size}
       height={size}
