@@ -178,7 +178,7 @@ export function TargetPriceCard({
           <div className="border-t border-slate-100 dark:border-zinc-800 pt-3 mb-2 px-1">
             <div className="text-[10px] text-slate-400 dark:text-zinc-500 mb-2">Analysis Logic</div>
             <div className="space-y-2">
-              {reasoning.split(/→\s*/).map((section, i) => {
+              {reasoning.split(/→\s*|\s*(?=\[(?:매크로|산업|종목|총평)\])/).filter(Boolean).map((section, i) => {
                 const tagMatch = section.match(/^\[(.+?)\]\s*/);
                 const tag = tagMatch?.[1] ?? "";
                 const text = tagMatch ? section.slice(tagMatch[0].length) : section;
