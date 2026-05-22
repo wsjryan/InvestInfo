@@ -26,11 +26,12 @@ export function TickerLogo({ ticker, size = 28, className = "" }: TickerLogoProp
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`/api/logo?ticker=${encodeURIComponent(ticker)}`}
+      src={`https://financialmodelingprep.com/image-stock/${ticker}.png`}
       alt={ticker}
       width={size}
       height={size}
       className={`shrink-0 rounded-full bg-white object-contain ${className}`}
+      style={{ padding: 2 }}
       onError={() => setFailed(true)}
     />
   );
