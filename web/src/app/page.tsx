@@ -14,6 +14,7 @@ import { StockChart } from "@/components/stock-chart";
 import { LiveClock } from "@/components/live-clock";
 import { TargetPriceCard } from "@/components/target-price-card";
 import { TickerLogo } from "@/components/ticker-logo";
+import { LoadingBanner, SectionSkeleton } from "@/components/loading-state";
 import { useTargetPrice } from "@/hooks/use-target-price";
 import { useGeminiAnalysis, usePrefetchAnalysis } from "@/hooks/use-gemini-analysis";
 import { usePrefetchTargets } from "@/hooks/use-target-price";
@@ -392,6 +393,13 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Loading banner */}
+        <LoadingBanner
+          geminiLoading={geminiLoading}
+          quotesLoading={quotesLoading}
+          hasGeminiData={!!ga}
+        />
+
         {/* Stock Chart — right below ticker info */}
         <StockChart symbol={selectedTicker} />
 
@@ -409,11 +417,15 @@ export default function HomePage() {
         />
 
         {/* Verdict — Buy/Hold/Sell */}
-        <VerdictCard
-          verdict={data.verdict.verdict}
-          confidence={data.verdict.confidence}
-          summary={data.verdict.summary}
-        />
+        {geminiLoading && !ga && !MOCK_DATA[selectedTicker] ? (
+          <SectionSkeleton label="AI Verdict 분석 중..." height="h-24" />
+        ) : (
+          <VerdictCard
+            verdict={data.verdict.verdict}
+            confidence={data.verdict.confidence}
+            summary={data.verdict.summary}
+          />
+        )}
 
         {/* AI Summary */}
         <AISummaryCard
@@ -424,6 +436,13 @@ export default function HomePage() {
         />
 
         {/* 3-Axis Cards */}
+        {geminiLoading && !ga && !MOCK_DATA[selectedTicker] ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <SectionSkeleton label="Macro 분석 중..." />
+            <SectionSkeleton label="Industry 분석 중..." />
+            <SectionSkeleton label="Stock 분석 중..." />
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <AxisCard
             title="Macro"
@@ -447,6 +466,7 @@ export default function HomePage() {
             collapsible={isMobile}
           />
         </div>
+        )}
 
         {/* Upcoming Events */}
         <UpcomingEvents events={data.events} />
