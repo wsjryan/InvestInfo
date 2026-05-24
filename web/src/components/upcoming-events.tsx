@@ -1,7 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogTrigger, DialogContent, DialogHeader,
+  DialogTitle, DialogDescription, DialogClose,
+} from "@/components/ui/dialog";
 
 export interface UpcomingEvent {
   date: string;
@@ -56,7 +62,9 @@ function EventItem({ event }: { event: UpcomingEvent }) {
   );
 }
 
-function AxisColumn({ icon, title, events }: { icon: string; title: string; events: UpcomingEvent[] }) {
+function AxisColumn({ icon, title, events, allEvents }: { icon: string; title: string; events: UpcomingEvent[]; allEvents: UpcomingEvent[] }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
@@ -73,6 +81,47 @@ function AxisColumn({ icon, title, events }: { icon: string; title: string; even
             {events.map((e, i) => <EventItem key={i} event={e} />)}
           </ul>
         )}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger className="w-full text-center text-xs text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 py-2 mt-2 cursor-pointer">
+            View timeline →
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <span>{icon}</span> {title} Events Timeline
+              </DialogTitle>
+              <DialogDescription>All events sorted by date</DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[400px] overflow-y-auto space-y-2">
+              {allEvents
+                .filter((e) => e.axis === events[0]?.axis)
+                .sort((a, b) => a.daysUntil - b.daysUntil)
+                .map((e, i) => (
+                  <div key={i} className="flex items-start gap-3 pl-2 border-l-2 border-slate-100 dark:border-zinc-800 py-1">
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono w-12 shrink-0">{e.date}</span>
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-700 dark:text-zinc-300">
+                        {e.url ? (
+                          <a href={e.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-500 dark:text-blue-400">{e.title}</a>
+                        ) : e.title}
+                      </p>
+                      {e.description && <p className="text-[10px] text-slate-400 dark:text-zinc-500">{e.description}</p>}
+                      <div className="flex gap-1.5 mt-0.5">
+                        <Badge variant="outline" className="text-[10px] h-4">{typeLabel[e.type]}</Badge>
+                        <Badge className={`text-[10px] h-4 ${impactColor[e.impact]}`}>{e.impact.toUpperCase()}</Badge>
+                        <span className="text-[10px] text-slate-300 dark:text-zinc-600">
+                          {e.daysUntil === 0 ? "Today" : e.daysUntil < 0 ? `${Math.abs(e.daysUntil)}d ago` : `D-${e.daysUntil}`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+            <DialogClose>
+              <Button variant="outline" size="sm" className="w-full mt-2">Close</Button>
+            </DialogClose>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
@@ -104,9 +153,9 @@ export function UpcomingEvents({ events }: { events: UpcomingEvent[] }) {
         <span className="text-[10px] font-normal text-slate-400 dark:text-zinc-500">~30 days</span>
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <AxisColumn icon="🌍" title="Macro" events={macro} />
-        <AxisColumn icon="🏭" title="Industry" events={industry} />
-        <AxisColumn icon="📈" title="Stock" events={stock} />
+        <AxisColumn icon="🌍" title="Macro" events={macro} allEvents={sorted} />
+        <AxisColumn icon="🏭" title="Industry" events={industry} allEvents={sorted} />
+        <AxisColumn icon="📈" title="Stock" events={stock} allEvents={sorted} />
       </div>
     </div>
   );
