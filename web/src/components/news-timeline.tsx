@@ -89,6 +89,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [sortMode, setSortMode] = useState<"latest" | "major">("latest");
+  const [expanded, setExpanded] = useState(false);
   const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
@@ -211,7 +212,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
           </p>
         ) : (
           <ul className="space-y-2">
-            {filtered.map((item, i) => (
+            {(expanded ? filtered : filtered.slice(0, 5)).map((item, i) => (
               <li key={i} className={`pl-3 py-2 rounded-r-md ${sentimentStyle[item.sentiment]}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
@@ -236,6 +237,22 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               </li>
             ))}
           </ul>
+          {!expanded && filtered.length > 5 && (
+            <button
+              onClick={() => setExpanded(true)}
+              className="w-full text-center text-xs text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 py-2 mt-1 cursor-pointer"
+            >
+              더보기 ({filtered.length - 5}건) ↓
+            </button>
+          )}
+          {expanded && filtered.length > 5 && (
+            <button
+              onClick={() => setExpanded(false)}
+              className="w-full text-center text-xs text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 py-2 mt-1 cursor-pointer"
+            >
+              접기 ↑
+            </button>
+          )}
         )}
         <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
           Google News · Auto 2min
