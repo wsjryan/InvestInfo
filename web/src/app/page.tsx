@@ -444,6 +444,8 @@ export default function HomePage() {
             verdict={data.verdict.verdict}
             confidence={data.verdict.confidence}
             summary={data.verdict.summary}
+            onRefresh={() => refreshGemini(true)}
+            loading={geminiLoading}
           />
         )}
 
@@ -454,6 +456,8 @@ export default function HomePage() {
             sentiment={data.aiSummary.sentiment}
             summary={geminiLoading ? "AI 분석 중..." : data.aiSummary.summary}
             updatedAt={ga?.queryTime ? new Date(ga.queryTime).toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }) + " KST (Gemini)" : selectedDate.toLocaleDateString("ko-KR") + " KST"}
+            onRefresh={() => refreshGemini(true)}
+            loading={geminiLoading}
           />
         )}
 

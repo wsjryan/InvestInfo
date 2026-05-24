@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export type Verdict = "strong_buy" | "buy" | "hold" | "sell" | "strong_sell";
 
@@ -8,6 +9,8 @@ interface VerdictCardProps {
   verdict: Verdict;
   confidence: number;
   summary: string;
+  onRefresh?: () => void;
+  loading?: boolean;
 }
 
 const verdictConfig: Record<Verdict, { label: string; emoji: string; color: string; bg: string }> = {
@@ -43,7 +46,7 @@ const verdictConfig: Record<Verdict, { label: string; emoji: string; color: stri
   },
 };
 
-export function VerdictCard({ verdict, confidence, summary }: VerdictCardProps) {
+export function VerdictCard({ verdict, confidence, summary, onRefresh, loading }: VerdictCardProps) {
   const config = verdictConfig[verdict];
   const barWidth = Math.min(Math.max(confidence, 0), 100);
 
@@ -55,9 +58,16 @@ export function VerdictCard({ verdict, confidence, summary }: VerdictCardProps) 
             <span className="text-xl">{config.emoji}</span>
             <span className={`text-lg font-bold ${config.color}`}>{config.label}</span>
           </div>
-          <span className="text-xs text-slate-400 dark:text-zinc-500">
-            Confidence {confidence}%
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 dark:text-zinc-500">
+              Confidence {confidence}%
+            </span>
+            {onRefresh && (
+              <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="h-6 text-[10px] px-2">
+                {loading ? "..." : "Refresh (Gemini)"}
+              </Button>
+            )}
+          </div>
         </div>
         <div className="w-full h-1.5 bg-slate-200 dark:bg-zinc-700 rounded-full mb-3">
           <div

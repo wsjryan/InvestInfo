@@ -2,12 +2,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface AISummaryCardProps {
   summary: string;
   sentiment: "positive" | "negative" | "neutral";
   ticker?: string;
   updatedAt?: string;
+  onRefresh?: () => void;
+  loading?: boolean;
 }
 
 const sentimentConfig = {
@@ -16,7 +19,7 @@ const sentimentConfig = {
   neutral: { label: "Neutral", className: "bg-slate-100 text-slate-800 dark:bg-zinc-800 dark:text-zinc-300" },
 };
 
-export function AISummaryCard({ summary, sentiment, ticker, updatedAt }: AISummaryCardProps) {
+export function AISummaryCard({ summary, sentiment, ticker, updatedAt, onRefresh, loading }: AISummaryCardProps) {
   const config = sentimentConfig[sentiment];
 
   return (
@@ -33,6 +36,11 @@ export function AISummaryCard({ summary, sentiment, ticker, updatedAt }: AISumma
             <Badge className={config.className}>{config.label}</Badge>
             {updatedAt && (
               <span className="text-[10px] text-slate-400 dark:text-zinc-500">{updatedAt}</span>
+            )}
+            {onRefresh && (
+              <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="h-6 text-[10px] px-2">
+                {loading ? "..." : "Refresh (Gemini)"}
+              </Button>
             )}
           </div>
         </div>
