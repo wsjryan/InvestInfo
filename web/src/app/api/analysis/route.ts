@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
   const now = new Date().toISOString();
 
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
 
     let res: Response | null = null;
     for (let attempt = 0; attempt < 2; attempt++) {
