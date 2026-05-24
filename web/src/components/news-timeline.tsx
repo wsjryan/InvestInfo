@@ -88,7 +88,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [tab, setTab] = useState<Tab>("all");
-  const [sortMode, setSortMode] = useState<"latest" | "oldest">("latest");
+  const [sortMode, setSortMode] = useState<"latest" | "major">("latest");
   const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
@@ -117,9 +117,20 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
     return () => clearInterval(interval);
   }, [fetchNews]);
 
-  const allNews = [...news].sort((a, b) =>
-    sortMode === "latest" ? toMs(b.time) - toMs(a.time) : toMs(a.time) - toMs(b.time)
-  );
+  const MAJOR_SOURCES = [
+    "reuters", "bloomberg", "wsj", "ft", "cnbc", "associated press", "nytimes",
+    "연합뉴스", "한경", "매일경제", "조선비즈", "한국경제", "서울경제",
+    "investing.com", "seeking alpha", "barron", "marketwatch",
+  ];
+
+  const allNews = [...news].sort((a, b) => {
+    if (sortMode === "major") {
+      const isMajor = (s: string) => MAJOR_SOURCES.some((m) => s.toLowerCase().includes(m)) ? 0 : 1;
+      const w = isMajor(a.source) - isMajor(b.source);
+      if (w !== 0) return w;
+    }
+    return toMs(b.time) - toMs(a.time);
+  });
 
   const filtered = tab === "all" ? allNews : allNews.filter((n) => n.sentiment === tab);
 
@@ -171,7 +182,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
             ))}
           </div>
           <div className="flex shrink-0">
-            {([["latest", "최신순"], ["oldest", "오래된순"]] as const).map(([key, label]) => (
+            {([["latest", "최신순"], ["major", "주요매체순"]] as const).map(([key, label], idx) => (
               <button
                 key={key}
                 onClick={() => setSortMode(key)}
@@ -179,7 +190,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
                   sortMode === key
                     ? "bg-slate-900 text-white border-slate-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
                     : "bg-transparent text-slate-400 dark:text-zinc-500 border-slate-200 dark:border-zinc-700 opacity-50 hover:opacity-100"
-                } ${key === "latest" ? "rounded-l-md border-r-0" : "rounded-r-md"}`}
+                } ${idx === 0 ? "rounded-l-md border-r-0" : "rounded-r-md"}`}
               >
                 {label}
               </button>
