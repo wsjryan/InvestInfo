@@ -243,7 +243,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               onClick={() => setExpanded(true)}
               className="w-full text-center text-xs text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 py-2 mt-1 cursor-pointer"
             >
-              더보기 ({filtered.length - 5}건) ↓
+              더보기 +{filtered.length - 5}건 ↓
             </button>
           )}
           {expanded && filtered.length > 5 && (

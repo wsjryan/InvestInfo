@@ -79,12 +79,13 @@ function AxisColumn({ icon, title, events, allEvents }: { icon: string; title: s
         {events.length === 0 ? (
           <p className="text-xs text-slate-400 dark:text-zinc-500 italic">No events</p>
         ) : (
+          <>
           <ul className="space-y-3">
             {visibleEvents.map((e, i) => <EventItem key={i} event={e} />)}
           </ul>
           {!expanded && events.length > 3 && (
             <button onClick={() => setExpanded(true)} className="w-full text-center text-xs text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 py-1 mt-1 cursor-pointer">
-              더보기 ({events.length - 3}건) ↓
+              더보기 +{events.length - 3}건 ↓
             </button>
           )}
           {expanded && events.length > 3 && (
@@ -92,6 +93,7 @@ function AxisColumn({ icon, title, events, allEvents }: { icon: string; title: s
               접기 ↑
             </button>
           )}
+          </>
         )}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger className="w-full text-center text-xs text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 py-2 mt-2 cursor-pointer">
