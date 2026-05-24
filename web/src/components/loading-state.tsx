@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface LoadingStep {
   label: string;
   done: boolean;
+  auto?: boolean; // true = auto-refresh, false = manual button
 }
 
 interface LoadingStateProps {
@@ -14,33 +15,36 @@ interface LoadingStateProps {
 
 export function LoadingBanner({ steps }: LoadingStateProps) {
   const [dots, setDots] = useState("");
+  const autoSteps = steps.filter((s) => s.auto !== false);
+  const manualSteps = steps.filter((s) => s.auto === false);
+  const allAutoDone = autoSteps.every((s) => s.done);
   const allDone = steps.every((s) => s.done);
   const [showComplete, setShowComplete] = useState(false);
 
   useEffect(() => {
-    if (allDone) {
+    if (allAutoDone) {
       setShowComplete(true);
-      const timer = setTimeout(() => setShowComplete(false), 2000);
+      const timer = setTimeout(() => setShowComplete(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [allDone]);
+  }, [allAutoDone]);
 
   useEffect(() => {
-    if (allDone) return;
+    if (allAutoDone) return;
     const interval = setInterval(() => {
       setDots((d) => (d.length >= 3 ? "" : d + "."));
     }, 500);
     return () => clearInterval(interval);
-  }, [allDone]);
+  }, [allAutoDone]);
 
   // Hide completely after done animation
-  if (allDone && !showComplete) return null;
+  if (allAutoDone && !showComplete) return null;
 
   const doneCount = steps.filter((s) => s.done).length;
 
   return (
     <Card className={`transition-all duration-500 ${
-      allDone
+      allAutoDone
         ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20"
         : "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
     }`}>
@@ -48,7 +52,7 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
         <div className="flex items-center gap-3">
           {/* Spinner or checkmark */}
           <div className="relative h-5 w-5 shrink-0">
-            {allDone ? (
+            {allAutoDone ? (
               <span className="text-green-500 text-lg">✓</span>
             ) : (
               <>
@@ -60,25 +64,35 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
 
           <div className="flex-1">
             {/* Title */}
-            <p className={`text-sm font-medium ${allDone ? "text-green-700 dark:text-green-300" : "text-blue-700 dark:text-blue-300"}`}>
-              {allDone ? "로딩 완료!" : `데이터 로딩 중${dots}`}
+            <p className={`text-sm font-medium ${allAutoDone ? "text-green-700 dark:text-green-300" : "text-blue-700 dark:text-blue-300"}`}>
+              {allAutoDone ? "자동 로딩 완료! (AI 분석/목표가는 버튼을 눌러주세요)" : `데이터 로딩 중${dots}`}
             </p>
 
-            {/* Step checkboxes - horizontal */}
-            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-              {steps.map((step) => (
-                <span key={step.label} className="flex items-center gap-1.5 text-[11px]">
+            {/* Step checkboxes - grouped */}
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="text-[9px] text-slate-400 dark:text-zinc-500">자동</span>
+              {autoSteps.map((step) => (
+                <span key={step.label} className="flex items-center gap-1 text-[11px]">
                   <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded border text-[9px] ${
                     step.done
                       ? "bg-green-500 border-green-500 text-white"
                       : "border-slate-300 dark:border-zinc-600 text-transparent"
-                  }`}>
-                    ✓
+                  }`}>✓</span>
+                  <span className={step.done ? "text-slate-500 dark:text-zinc-400 line-through" : "text-blue-600 dark:text-blue-400 font-medium"}>
+                    {step.label}
                   </span>
-                  <span className={step.done
-                    ? "text-slate-500 dark:text-zinc-400 line-through"
-                    : "text-blue-600 dark:text-blue-400 font-medium"
-                  }>
+                </span>
+              ))}
+              <span className="text-slate-200 dark:text-zinc-700 mx-0.5">|</span>
+              <span className="text-[9px] text-slate-400 dark:text-zinc-500">수동</span>
+              {manualSteps.map((step) => (
+                <span key={step.label} className="flex items-center gap-1 text-[11px]">
+                  <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded border text-[9px] ${
+                    step.done
+                      ? "bg-green-500 border-green-500 text-white"
+                      : "border-amber-300 dark:border-amber-700 text-transparent"
+                  }`}>✓</span>
+                  <span className={step.done ? "text-slate-500 dark:text-zinc-400 line-through" : "text-amber-600 dark:text-amber-400"}>
                     {step.label}
                   </span>
                 </span>
@@ -87,8 +101,8 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
           </div>
 
           {/* Progress count */}
-          <span className={`text-[10px] shrink-0 ${allDone ? "text-green-400" : "text-blue-400 dark:text-blue-600"}`}>
-            {doneCount}/{steps.length}
+          <span className={`text-[10px] shrink-0 ${allAutoDone ? "text-green-400" : "text-blue-400 dark:text-blue-600"}`}>
+            {autoSteps.filter((s) => s.done).length}/{autoSteps.length} auto
           </span>
         </div>
       </CardContent>

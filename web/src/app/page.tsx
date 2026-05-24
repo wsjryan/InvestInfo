@@ -398,11 +398,11 @@ export default function HomePage() {
         {/* Loading banner */}
         <LoadingBanner
           steps={[
-            { label: "주가", done: !quotesLoading },
-            { label: "차트", done: Object.keys(quotes).length > 0 },
-            { label: "AI 분석", done: !!ga },
-            { label: "목표가", done: !!liveTarget },
-            { label: "뉴스", done: true },
+            { label: "주가", done: !quotesLoading, auto: true },
+            { label: "차트", done: Object.keys(quotes).length > 0, auto: true },
+            { label: "뉴스", done: true, auto: true },
+            { label: "AI 분석", done: !!ga, auto: false },
+            { label: "목표가", done: !!liveTarget, auto: false },
           ]}
         />
 
