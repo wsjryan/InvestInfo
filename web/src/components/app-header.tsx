@@ -29,9 +29,21 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={toggleTZ} className="h-8 px-2 text-[11px] font-mono">
-            {tz === "Asia/Seoul" ? "KST" : "EST"}
-          </Button>
+          <div className="flex h-8">
+            {([["Asia/Seoul", "KST"], ["America/New_York", "EST"]] as const).map(([key, label], idx) => (
+              <button
+                key={key}
+                onClick={() => { if (tz !== key) toggleTZ(); }}
+                className={`px-2.5 text-[11px] font-mono border transition-colors cursor-pointer ${
+                  tz === key
+                    ? "bg-slate-900 text-white border-slate-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
+                    : "bg-transparent text-slate-400 dark:text-zinc-500 border-slate-200 dark:border-zinc-700 opacity-50 hover:opacity-100"
+                } ${idx === 0 ? "rounded-l-md border-r-0" : "rounded-r-md"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <Button variant="ghost" size="sm" onClick={toggleTheme} className="h-8 w-8 p-0">
             {theme === "light" ? "🌙" : "☀️"}
           </Button>
