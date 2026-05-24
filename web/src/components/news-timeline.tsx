@@ -113,7 +113,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
 
   useEffect(() => {
     fetchNews();
-    const interval = setInterval(fetchNews, 60 * 1000); // every 1min
+    const interval = setInterval(fetchNews, 2 * 60 * 1000); // every 2min (server caches 1min)
     return () => clearInterval(interval);
   }, [fetchNews]);
 
@@ -238,7 +238,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
           </ul>
         )}
         <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
-          Google News · Auto 1min
+          Google News · Auto 2min
         </div>
       </CardContent>
     </Card>
