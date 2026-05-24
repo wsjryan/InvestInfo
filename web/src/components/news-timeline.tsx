@@ -88,6 +88,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [tab, setTab] = useState<Tab>("all");
+  const [sortMode, setSortMode] = useState<"latest" | "relevant">("latest");
   const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
@@ -116,8 +117,15 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
     return () => clearInterval(interval);
   }, [fetchNews]);
 
-  // All news sorted by time (newest first)
-  const allNews = [...news].sort((a, b) => toMs(b.time) - toMs(a.time));
+  // Sort: latest = time desc, relevant = sentiment weight + time desc
+  const allNews = [...news].sort((a, b) => {
+    if (sortMode === "relevant") {
+      const weight = (s: string) => s === "positive" ? 0 : s === "negative" ? 1 : 2;
+      const w = weight(a.sentiment) - weight(b.sentiment);
+      if (w !== 0) return w;
+    }
+    return toMs(b.time) - toMs(a.time);
+  });
 
   const filtered = tab === "all" ? allNews : allNews.filter((n) => n.sentiment === tab);
 
@@ -151,21 +159,29 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
             </Button>
           </div>
         </div>
-        {/* Tabs */}
-        <div className="flex gap-1 mt-2">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${
-                tab === t.key
-                  ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : `bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 ${t.color || "text-slate-600 dark:text-zinc-400"}`
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+        {/* Tabs + Sort toggle */}
+        <div className="flex items-center justify-between mt-2 gap-2">
+          <div className="flex gap-1">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${
+                  tab === t.key
+                    ? "bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : `bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 ${t.color || "text-slate-600 dark:text-zinc-400"}`
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setSortMode((s) => s === "latest" ? "relevant" : "latest")}
+            className="text-[11px] text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 cursor-pointer shrink-0"
+          >
+            {sortMode === "latest" ? "최신순 ↓" : "주요순 ★"}
+          </button>
         </div>
       </CardHeader>
       <CardContent>

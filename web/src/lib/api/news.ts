@@ -19,7 +19,7 @@ export async function fetchNewsRSS(query: string, lang = "ko"): Promise<RSSItem[
   const url = `${GOOGLE_NEWS_RSS}?q=${encodeURIComponent(query)}&hl=${hl}&gl=${gl}&ceid=${gl}:${hl}`;
 
   try {
-    const res = await fetch(url, { next: { revalidate: 600 } });
+    const res = await fetch(url, { cache: "no-store" }); // always fresh
     if (!res.ok) return [];
     const xml = await res.text();
     return parseRSSItems(xml);
