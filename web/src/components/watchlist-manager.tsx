@@ -438,7 +438,7 @@ export function WatchlistManager({
   };
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1">
+    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
       {items.map((item, index) => {
         const isDragOver = dragOverIndex === index;
         const isDragging = dragItem.current === index;

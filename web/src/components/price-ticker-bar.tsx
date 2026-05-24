@@ -37,7 +37,7 @@ export function PriceTickerBar({ quotes, watchlist, selected, loading, onSelect,
 
   if (loading) {
     return (
-      <div className="flex gap-4 overflow-x-auto py-2 animate-pulse">
+      <div className="flex gap-4 overflow-x-auto py-1 animate-pulse scrollbar-thin">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-10 w-32 rounded bg-slate-200 dark:bg-zinc-800 shrink-0" />
         ))}
@@ -46,7 +46,7 @@ export function PriceTickerBar({ quotes, watchlist, selected, loading, onSelect,
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto py-2 -mx-1 px-1">
+    <div className="flex gap-2 overflow-x-auto py-1 -mx-1 px-1 scrollbar-thin">
       {watchlist.map(({ ticker, name }) => {
         const q = quotes[ticker];
         if (!q || q.price === 0) return null;
