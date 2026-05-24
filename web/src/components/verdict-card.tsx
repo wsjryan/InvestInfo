@@ -58,16 +58,9 @@ export function VerdictCard({ verdict, confidence, summary, onRefresh, loading }
             <span className="text-xl">{config.emoji}</span>
             <span className={`text-lg font-bold ${config.color}`}>{config.label}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 dark:text-zinc-500">
-              Confidence {confidence}%
-            </span>
-            {onRefresh && (
-              <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="h-6 text-[10px] px-2">
-                {loading ? "..." : "Refresh (Gemini)"}
-              </Button>
-            )}
-          </div>
+          <span className="text-xs text-slate-400 dark:text-zinc-500">
+            Confidence {confidence}%
+          </span>
         </div>
         <div className="w-full h-1.5 bg-slate-200 dark:bg-zinc-700 rounded-full mb-3">
           <div
