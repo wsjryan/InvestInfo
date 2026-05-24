@@ -327,7 +327,7 @@ export default function HomePage() {
   // Prefetch all watchlist data in background (staggered)
   usePrefetchAnalysis(symbols);
   usePrefetchTargets(symbols);
-  const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, error: targetError, refresh: refreshTarget } = useTargetPrice(selectedTicker);
+  const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, error: targetError, refresh: refreshTarget } = useTargetPrice(selectedTicker, geminiAnalysis);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
@@ -413,7 +413,7 @@ export default function HomePage() {
 
         {/* ═══ AI Analysis Block (Gemini) — collapsible ═══ */}
         <Card className="border border-slate-200 dark:border-zinc-800">
-          <CardContent className="py-4">
+          <CardContent className="py-2">
             {/* Header: toggle + run button */}
             <div className="flex items-center justify-between">
               <button
