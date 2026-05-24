@@ -211,6 +211,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
             {tab === "all" ? "뉴스가 없습니다" : `${tab === "positive" ? "긍정" : tab === "negative" ? "부정" : "중립"} 뉴스가 없습니다`}
           </p>
         ) : (
+          <>
           <ul className="space-y-2">
             {(expanded ? filtered : filtered.slice(0, 5)).map((item, i) => (
               <li key={i} className={`pl-3 py-2 rounded-r-md ${sentimentStyle[item.sentiment]}`}>
@@ -253,6 +254,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               접기 ↑
             </button>
           )}
+          </>
         )}
         <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
           Google News · Auto 2min
