@@ -279,6 +279,7 @@ export default function HomePage() {
   });
   const isMobile = useMediaQuery("(max-width: 640px)");
   const [lastUpdated, setLastUpdated] = useState(() => new Date());
+  const [aiCollapsed, setAiCollapsed] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Auto-refresh every 30 seconds
@@ -304,20 +305,21 @@ export default function HomePage() {
     events: [],
   };
   const { data: geminiAnalysis, loading: geminiLoading, refresh: refreshGemini } = useGeminiAnalysis(selectedTicker);
-  // Merge: mock > gemini > fallback
+  // Merge: gemini > mock > fallback (gemini takes priority when available)
   const mockData = MOCK_DATA[selectedTicker];
   const ga = geminiAnalysis;
-  const data = mockData ?? (ga ? {
-    name: selectedWatchItem?.name ?? selectedTicker,
-    currency: selectedTicker.endsWith(".KS") ? "KRW" : "USD",
+  const gaData = ga ? {
+    name: selectedWatchItem?.name ?? mockData?.name ?? selectedTicker,
+    currency: mockData?.currency ?? (selectedTicker.endsWith(".KS") ? "KRW" : "USD"),
     verdict: { verdict: ga.verdict as any, confidence: ga.confidence, summary: ga.verdictSummary },
     aiSummary: { sentiment: ga.aiSentiment as any, summary: ga.aiSummary },
     macro: ga.macro,
     industry: ga.industry,
     stock: ga.stock,
-    news: [],
+    news: mockData?.news ?? [],
     events: ga.events,
-  } : fallbackData);
+  } : null;
+  const data = gaData ?? mockData ?? fallbackData;
 
   const symbols = useMemo(() => watchlist.map((w) => w.ticker), [watchlist]);
   const { quotes, loading: quotesLoading } = useQuotes(symbols, refreshKey);
@@ -410,40 +412,38 @@ export default function HomePage() {
         <StockChart symbol={selectedTicker} />
 
         {/* ═══ AI Analysis Block (Gemini) — collapsible ═══ */}
-        {(() => {
-          const hasData = !!(ga || MOCK_DATA[selectedTicker]);
-          const [aiExpanded, setAiExpanded] = [hasData, () => {}]; // auto-expand when data exists
-          return (
-            <Card className="border border-slate-200 dark:border-zinc-800">
-              <CardContent className="py-4">
-                {/* Header: toggle + run button */}
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={() => {}}
-                    className="flex items-center gap-2 cursor-default"
-                  >
-                    <span className="text-[10px] text-slate-400">{hasData ? "▼" : "▶"}</span>
-                    <span className="text-sm font-semibold text-slate-700 dark:text-zinc-300">AI Analysis</span>
-                    <span className="text-[10px] text-slate-400 dark:text-zinc-500">Powered by Gemini</span>
-                    {ga?.queryTime && (
-                      <span className="text-[10px] text-slate-300 dark:text-zinc-600">
-                        · {new Date(ga.queryTime).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false })} KST
-                      </span>
-                    )}
-                  </button>
-                  <Button
-                    size="sm"
-                    variant={hasData ? "outline" : "default"}
-                    onClick={() => refreshGemini(true)}
-                    disabled={geminiLoading}
-                    className="text-xs h-7 px-3"
-                  >
-                    {geminiLoading ? "Gemini 분석 중..." : hasData ? "Refresh" : "▶ AI 분석 실행"}
-                  </Button>
-                </div>
+        <Card className="border border-slate-200 dark:border-zinc-800">
+          <CardContent className="py-4">
+            {/* Header: toggle + run button */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setAiCollapsed((c) => !c)}
+                className="flex items-center gap-2 cursor-pointer hover:opacity-70"
+              >
+                <span className="text-[10px] text-slate-400">{aiCollapsed ? "▶" : "▼"}</span>
+                <span className="text-sm font-semibold text-slate-700 dark:text-zinc-300">AI Analysis</span>
+                <span className="text-[10px] text-slate-400 dark:text-zinc-500">Powered by Gemini</span>
+                {ga?.queryTime && (
+                  <span className="text-[10px] text-slate-300 dark:text-zinc-600">
+                    · {new Date(ga.queryTime).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false })} KST
+                  </span>
+                )}
+              </button>
+              <Button
+                size="sm"
+                variant={ga ? "outline" : "default"}
+                onClick={() => { refreshGemini(true); setAiCollapsed(false); }}
+                disabled={geminiLoading}
+                className="text-xs h-7 px-3"
+              >
+                {geminiLoading ? "Gemini 분석 중..." : ga ? "Refresh" : "▶ AI 분석 실행"}
+              </Button>
+            </div>
 
-                {/* Content */}
-                {geminiLoading && !hasData ? (
+            {/* Content */}
+            {!aiCollapsed && (
+              <>
+                {geminiLoading && !ga ? (
                   <div className="space-y-3 mt-4">
                     <SectionSkeleton label="AI 분석 중..." height="h-20" />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -452,7 +452,7 @@ export default function HomePage() {
                       <SectionSkeleton label="Stock" />
                     </div>
                   </div>
-                ) : !hasData ? (
+                ) : !ga && !MOCK_DATA[selectedTicker] ? (
                   <div className="py-6 text-center mt-2">
                     <p className="text-sm text-slate-400 dark:text-zinc-500">버튼을 눌러 Gemini AI 분석을 실행하세요</p>
                     <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-1">목표가 · 투자 판단 · AI 요약 · 3축 분석 · 예정 이벤트</p>
@@ -490,10 +490,10 @@ export default function HomePage() {
                     <UpcomingEvents events={data.events} />
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          );
-        })()}
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* News Timeline — live + mock merged, positive/negative split */}
         <NewsTimeline ticker={selectedTicker} tickerName={data.name} mockItems={[]} />
