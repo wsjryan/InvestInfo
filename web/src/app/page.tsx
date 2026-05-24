@@ -323,7 +323,7 @@ export default function HomePage() {
   // Prefetch all watchlist data in background (staggered)
   usePrefetchAnalysis(symbols);
   usePrefetchTargets(symbols);
-  const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, refresh: refreshTarget } = useTargetPrice(selectedTicker);
+  const { data: liveTarget, loading: targetLoading, lastFetched: targetLastFetched, error: targetError, refresh: refreshTarget } = useTargetPrice(selectedTicker);
 
   const handleAddTicker = useCallback((item: WatchlistItem) => {
     setWatchlist((prev) => (prev.some((w) => w.ticker === item.ticker) ? prev : [...prev, item]));
@@ -410,6 +410,7 @@ export default function HomePage() {
           liveTarget={liveTarget}
           liveTargetLoading={targetLoading}
           lastFetched={targetLastFetched}
+          error={targetError}
           onRefresh={refreshTarget}
           macroScore={data.macro.score}
           industryScore={data.industry.score}

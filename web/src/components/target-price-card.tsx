@@ -11,6 +11,7 @@ interface TargetPriceCardProps {
   liveTarget: TargetPriceData | null;
   liveTargetLoading: boolean;
   lastFetched: Date | null;
+  error: string | null;
   onRefresh: (forceRefresh?: boolean) => void;
   macroScore: number;
   industryScore: number;
@@ -47,6 +48,7 @@ export function TargetPriceCard({
   liveTarget,
   liveTargetLoading,
   lastFetched,
+  error: targetError,
   onRefresh,
   macroScore,
   industryScore,
@@ -124,11 +126,17 @@ export function TargetPriceCard({
               </div>
             </>
           ) : (
-            <div className="text-center">
+            <div className="text-center max-w-xs">
               <p className="text-xs text-slate-400 dark:text-zinc-500">목표가 데이터 없음</p>
-              <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-0.5">
-                Gemini API 한도 초과일 수 있습니다. [Refresh] 버튼을 눌러 재시도해주세요.
-              </p>
+              {targetError ? (
+                <p className="text-[10px] text-red-400 dark:text-red-500 mt-0.5">
+                  Error: {targetError.includes("429") ? "Gemini API 호출 한도 초과 — 1-2분 후 Refresh 버튼을 다시 눌러주세요." : targetError}
+                </p>
+              ) : (
+                <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-0.5">
+                  [Refresh] 버튼을 눌러 Gemini AI 분석을 요청하세요.
+                </p>
+              )}
             </div>
           )}
 

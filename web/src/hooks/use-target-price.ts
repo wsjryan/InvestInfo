@@ -37,6 +37,7 @@ export function useTargetPrice(symbol: string) {
   const [data, setData] = useState<TargetPriceData | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const cached = getAnalysisCache(symbol);
@@ -87,12 +88,17 @@ export function useTargetPrice(symbol: string) {
   }, [symbol, data]);
 
   const refresh = useCallback((_forceRefresh = false) => {
-    // Trigger via analysis refresh
     setLoading(true);
+    setError(null);
     fetch(`/api/analysis?symbol=${encodeURIComponent(symbol)}&refresh=1&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((res) => {
-        if (!res.error && res.targetMean > 0) {
+        if (res.error) {
+          setError(res.error);
+          setLoading(false);
+          return;
+        }
+        if (res.targetMean > 0) {
           setData({
             source: res.source ?? "Gemini AI",
             queryTime: res.queryTime,
@@ -111,8 +117,8 @@ export function useTargetPrice(symbol: string) {
         }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((e) => { setError(e.message); setLoading(false); });
   }, [symbol]);
 
-  return { data, loading, lastFetched, refresh };
+  return { data, loading, lastFetched, error, refresh };
 }
