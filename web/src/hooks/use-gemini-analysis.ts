@@ -49,39 +49,9 @@ async function fetchOne(symbol: string, forceRefresh = false): Promise<GeminiAna
   return cached?.data ?? null;
 }
 
-/** Prefetch all watchlist tickers in background (staggered to avoid 429) */
-export function usePrefetchAnalysis(tickers: string[]) {
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (started.current || tickers.length === 0) return;
-    started.current = true;
-
-    // Stagger fetches: 1 per 3 seconds to avoid Gemini 429
-    const failed: string[] = [];
-    let i = 0;
-    const next = () => {
-      if (i >= tickers.length) {
-        // Retry failed ones after 30s
-        if (failed.length > 0) {
-          setTimeout(() => {
-            failed.forEach((t, j) => setTimeout(() => fetchOne(t), j * 6000));
-          }, 30000);
-        }
-        return;
-      }
-      const t = tickers[i++];
-      if (!analysisCache[t]) {
-        fetchOne(t).then((r) => {
-          if (!r) failed.push(t);
-          setTimeout(next, 8000); // 8s gap to avoid 429
-        });
-      } else {
-        setTimeout(next, 200);
-      }
-    };
-    next();
-  }, [tickers.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+/** Prefetch disabled — manual only to avoid Gemini 429 */
+export function usePrefetchAnalysis(_tickers: string[]) {
+  // No-op: user clicks Refresh manually
 }
 
 /** Use analysis for a single ticker (reads from cache) */
@@ -90,21 +60,15 @@ export function useGeminiAnalysis(symbol: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // On ticker change: show cache instantly, then refresh if needed
+  // On ticker change: show cache if available, don't auto-fetch
   useEffect(() => {
     const cached = analysisCache[symbol];
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
       setData(cached.data);
-      setLoading(false);
-      return;
+    } else {
+      setData(null);
     }
-    // Not cached — fetch
-    setData(null);
-    setLoading(true);
-    fetchOne(symbol).then((result) => {
-      setData(result);
-      setLoading(false);
-    });
+    setLoading(false);
   }, [symbol]);
 
   const refresh = useCallback((forceRefresh = false) => {

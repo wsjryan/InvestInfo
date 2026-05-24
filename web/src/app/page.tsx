@@ -23,6 +23,8 @@ import { VerdictCard, type Verdict } from "@/components/verdict-card";
 import { QuoteBadge } from "@/components/quote-badge";
 import { PriceTickerBar } from "@/components/price-ticker-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useQuotes } from "@/hooks/use-quotes";
 
@@ -424,6 +426,16 @@ export default function HomePage() {
         {/* Verdict — Buy/Hold/Sell */}
         {geminiLoading && !ga && !MOCK_DATA[selectedTicker] ? (
           <SectionSkeleton label="AI Verdict 분석 중..." height="h-24" />
+        ) : !ga && !MOCK_DATA[selectedTicker] ? (
+          <Card className="border-dashed border-slate-300 dark:border-zinc-700">
+            <CardContent className="py-6 text-center">
+              <p className="text-sm text-slate-500 dark:text-zinc-400 mb-2">AI 분석 데이터가 없습니다</p>
+              <Button size="sm" onClick={() => refreshGemini(true)} disabled={geminiLoading} className="text-xs">
+                {geminiLoading ? "분석 중..." : "AI 분석 실행 (Gemini)"}
+              </Button>
+              <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-2">Verdict, 3축 분석, 이벤트, 목표가를 Gemini AI가 생성합니다</p>
+            </CardContent>
+          </Card>
         ) : (
           <VerdictCard
             verdict={data.verdict.verdict}

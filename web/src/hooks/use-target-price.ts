@@ -58,29 +58,7 @@ export function useTargetPrice(symbol: string) {
       });
       setLastFetched(new Date());
     } else {
-      // No cache — try fetching directly
       setData(null);
-      setLoading(true);
-      fetch(`/api/analysis?symbol=${encodeURIComponent(symbol)}&_t=${Date.now()}`)
-        .then((r) => r.json())
-        .then((res) => {
-          if (!res.error && res.targetMean > 0) {
-            setData({
-              source: res.source ?? "Gemini AI", queryTime: res.queryTime, currentPrice: 0,
-              targetHigh: res.targetHigh ?? 0, targetLow: res.targetLow ?? 0,
-              targetMean: res.targetMean ?? 0, targetMedian: res.targetMean ?? 0,
-              numberOfAnalysts: res.numberOfAnalysts ?? 0,
-              recommendation: res.recommendation ?? "hold",
-              recommendationMean: res.recommendationMean ?? 3,
-              reasoning: res.reasoning, sources: res.sources,
-            });
-            setLastFetched(new Date());
-          } else if (res.error) {
-            setError(res.error);
-          }
-          setLoading(false);
-        })
-        .catch((e) => { setError(e.message); setLoading(false); });
     }
   }, [symbol]);
 
