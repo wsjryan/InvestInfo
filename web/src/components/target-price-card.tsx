@@ -124,7 +124,12 @@ export function TargetPriceCard({
               </div>
             </>
           ) : (
-            <span className="text-xs text-slate-400 dark:text-zinc-500">No analyst data</span>
+            <div className="text-center">
+              <p className="text-xs text-slate-400 dark:text-zinc-500">목표가 데이터 없음</p>
+              <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-0.5">
+                Gemini API 한도 초과일 수 있습니다. [Refresh] 버튼을 눌러 재시도해주세요.
+              </p>
+            </div>
           )}
 
           {/* Refresh button */}
@@ -238,7 +243,7 @@ export function TargetPriceCard({
             <span>
               {lastFetched
                 ? `Updated: ${lastFetched.toLocaleString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} · Auto 1h`
-                : "Not loaded"}
+                : "미로드 — Refresh 버튼을 눌러주세요"}
             </span>
           </div>
           {queryTime && (
