@@ -87,7 +87,7 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
                 </span>
               ))}
               <span className="text-slate-200 dark:text-zinc-700 mx-0.5">|</span>
-              <span className="text-[9px] text-slate-400 dark:text-zinc-500">수동</span>
+              <span className="text-[9px] text-slate-400 dark:text-zinc-500">수동 (각 항목의 버튼을 눌러주세요)</span>
               {manualSteps.map((step) => (
                 <span key={step.label} className="flex items-center gap-1 text-[11px]">
                   <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded border text-[9px] ${

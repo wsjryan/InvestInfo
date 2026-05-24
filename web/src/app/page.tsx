@@ -427,13 +427,16 @@ export default function HomePage() {
         {geminiLoading && !ga && !MOCK_DATA[selectedTicker] ? (
           <SectionSkeleton label="AI Verdict 분석 중..." height="h-24" />
         ) : !ga && !MOCK_DATA[selectedTicker] ? (
-          <Card className="border-dashed border-slate-300 dark:border-zinc-700">
+          <Card className="border-dashed border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/10">
             <CardContent className="py-6 text-center">
-              <p className="text-sm text-slate-500 dark:text-zinc-400 mb-2">AI 분석 데이터가 없습니다</p>
-              <Button size="sm" onClick={() => refreshGemini(true)} disabled={geminiLoading} className="text-xs">
-                {geminiLoading ? "분석 중..." : "AI 분석 실행 (Gemini)"}
+              <p className="text-sm text-slate-600 dark:text-zinc-300 mb-3">이 종목의 AI 분석 데이터가 없습니다</p>
+              <Button size="sm" onClick={() => refreshGemini(true)} disabled={geminiLoading} className="text-xs px-6">
+                {geminiLoading ? "Gemini 분석 중..." : "▶ AI 분석 실행"}
               </Button>
-              <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-2">Verdict, 3축 분석, 이벤트, 목표가를 Gemini AI가 생성합니다</p>
+              <div className="text-[10px] text-slate-400 dark:text-zinc-500 mt-3 space-y-0.5">
+                <p>아래 항목이 Gemini AI로 자동 생성됩니다:</p>
+                <p>투자 판단 (Verdict) · AI 요약 · Macro/Industry/Stock 3축 분석 · 예정 이벤트 · 목표가</p>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -445,12 +448,14 @@ export default function HomePage() {
         )}
 
         {/* AI Summary */}
-        <AISummaryCard
-          ticker={selectedTicker}
-          sentiment={data.aiSummary.sentiment}
-          summary={geminiLoading ? "AI 분석 중..." : data.aiSummary.summary}
-          updatedAt={ga?.queryTime ? new Date(ga.queryTime).toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }) + " KST (Gemini)" : selectedDate.toLocaleDateString("ko-KR") + " KST"}
-        />
+        {!ga && !MOCK_DATA[selectedTicker] && !geminiLoading ? null : (
+          <AISummaryCard
+            ticker={selectedTicker}
+            sentiment={data.aiSummary.sentiment}
+            summary={geminiLoading ? "AI 분석 중..." : data.aiSummary.summary}
+            updatedAt={ga?.queryTime ? new Date(ga.queryTime).toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }) + " KST (Gemini)" : selectedDate.toLocaleDateString("ko-KR") + " KST"}
+          />
+        )}
 
         {/* 3-Axis Cards */}
         {geminiLoading && !ga && !MOCK_DATA[selectedTicker] ? (
