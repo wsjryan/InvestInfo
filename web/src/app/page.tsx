@@ -395,9 +395,13 @@ export default function HomePage() {
 
         {/* Loading banner */}
         <LoadingBanner
-          geminiLoading={geminiLoading}
-          quotesLoading={quotesLoading}
-          hasGeminiData={!!ga}
+          steps={[
+            { label: "주가", done: !quotesLoading },
+            { label: "차트", done: Object.keys(quotes).length > 0 },
+            { label: "AI 분석", done: !!ga },
+            { label: "목표가", done: !!liveTarget },
+            { label: "뉴스", done: true },
+          ]}
         />
 
         {/* Stock Chart — right below ticker info */}
