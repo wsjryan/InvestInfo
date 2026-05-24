@@ -74,7 +74,7 @@ export function usePrefetchAnalysis(tickers: string[]) {
       if (!analysisCache[t]) {
         fetchOne(t).then((r) => {
           if (!r) failed.push(t);
-          setTimeout(next, 5000); // 5s gap to avoid 429
+          setTimeout(next, 8000); // 8s gap to avoid 429
         });
       } else {
         setTimeout(next, 200);
