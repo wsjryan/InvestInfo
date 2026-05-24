@@ -88,7 +88,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [tab, setTab] = useState<Tab>("all");
-  const [sortMode, setSortMode] = useState<"latest" | "relevant">("latest");
+  const [sortMode, setSortMode] = useState<"latest" | "oldest">("latest");
   const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
@@ -117,15 +117,9 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
     return () => clearInterval(interval);
   }, [fetchNews]);
 
-  // Sort: latest = time desc, relevant = sentiment weight + time desc
-  const allNews = [...news].sort((a, b) => {
-    if (sortMode === "relevant") {
-      const weight = (s: string) => s === "positive" ? 0 : s === "negative" ? 1 : 2;
-      const w = weight(a.sentiment) - weight(b.sentiment);
-      if (w !== 0) return w;
-    }
-    return toMs(b.time) - toMs(a.time);
-  });
+  const allNews = [...news].sort((a, b) =>
+    sortMode === "latest" ? toMs(b.time) - toMs(a.time) : toMs(a.time) - toMs(b.time)
+  );
 
   const filtered = tab === "all" ? allNews : allNews.filter((n) => n.sentiment === tab);
 
@@ -176,12 +170,21 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               </button>
             ))}
           </div>
-          <button
-            onClick={() => setSortMode((s) => s === "latest" ? "relevant" : "latest")}
-            className="text-[11px] text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 cursor-pointer shrink-0"
-          >
-            {sortMode === "latest" ? "최신순 ↓" : "주요순 ★"}
-          </button>
+          <div className="flex shrink-0">
+            {([["latest", "최신순"], ["oldest", "오래된순"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setSortMode(key)}
+                className={`px-2 py-0.5 text-[11px] border transition-colors cursor-pointer ${
+                  sortMode === key
+                    ? "bg-slate-900 text-white border-slate-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
+                    : "bg-transparent text-slate-400 dark:text-zinc-500 border-slate-200 dark:border-zinc-700 opacity-50 hover:opacity-100"
+                } ${key === "latest" ? "rounded-l-md border-r-0" : "rounded-r-md"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
