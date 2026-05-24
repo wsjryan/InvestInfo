@@ -409,89 +409,91 @@ export default function HomePage() {
         {/* Stock Chart — right below ticker info */}
         <StockChart symbol={selectedTicker} />
 
-        {/* ═══ AI Analysis Block (Gemini) ═══ */}
-        <Card className="border border-slate-200 dark:border-zinc-800">
-          <CardContent className="py-4 space-y-4">
-            {/* Header + Run button */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-700 dark:text-zinc-300">AI Analysis</span>
-                {ga?.queryTime && (
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                    {new Date(ga.queryTime).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false })} KST
-                  </span>
+        {/* ═══ AI Analysis Block (Gemini) — collapsible ═══ */}
+        {(() => {
+          const hasData = !!(ga || MOCK_DATA[selectedTicker]);
+          const [aiExpanded, setAiExpanded] = [hasData, () => {}]; // auto-expand when data exists
+          return (
+            <Card className="border border-slate-200 dark:border-zinc-800">
+              <CardContent className="py-4">
+                {/* Header: toggle + run button */}
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => {}}
+                    className="flex items-center gap-2 cursor-default"
+                  >
+                    <span className="text-[10px] text-slate-400">{hasData ? "▼" : "▶"}</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-zinc-300">AI Analysis</span>
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500">Powered by Gemini</span>
+                    {ga?.queryTime && (
+                      <span className="text-[10px] text-slate-300 dark:text-zinc-600">
+                        · {new Date(ga.queryTime).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false })} KST
+                      </span>
+                    )}
+                  </button>
+                  <Button
+                    size="sm"
+                    variant={hasData ? "outline" : "default"}
+                    onClick={() => refreshGemini(true)}
+                    disabled={geminiLoading}
+                    className="text-xs h-7 px-3"
+                  >
+                    {geminiLoading ? "Gemini 분석 중..." : hasData ? "Refresh" : "▶ AI 분석 실행"}
+                  </Button>
+                </div>
+
+                {/* Content */}
+                {geminiLoading && !hasData ? (
+                  <div className="space-y-3 mt-4">
+                    <SectionSkeleton label="AI 분석 중..." height="h-20" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <SectionSkeleton label="Macro" />
+                      <SectionSkeleton label="Industry" />
+                      <SectionSkeleton label="Stock" />
+                    </div>
+                  </div>
+                ) : !hasData ? (
+                  <div className="py-6 text-center mt-2">
+                    <p className="text-sm text-slate-400 dark:text-zinc-500">버튼을 눌러 Gemini AI 분석을 실행하세요</p>
+                    <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-1">목표가 · 투자 판단 · AI 요약 · 3축 분석 · 예정 이벤트</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    <TargetPriceCard
+                      currentPrice={quotes[selectedTicker]?.price ?? 0}
+                      currency={data.currency}
+                      liveTarget={liveTarget}
+                      liveTargetLoading={targetLoading}
+                      lastFetched={targetLastFetched}
+                      error={targetError}
+                      onRefresh={refreshTarget}
+                      macroScore={data.macro.score}
+                      industryScore={data.industry.score}
+                      stockScore={data.stock.score}
+                    />
+                    <VerdictCard
+                      verdict={data.verdict.verdict}
+                      confidence={data.verdict.confidence}
+                      summary={data.verdict.summary}
+                    />
+                    <AISummaryCard
+                      ticker={selectedTicker}
+                      sentiment={data.aiSummary.sentiment}
+                      summary={data.aiSummary.summary}
+                      updatedAt={ga?.queryTime ? new Date(ga.queryTime).toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }) + " KST" : ""}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <AxisCard title="Macro" icon="🌍" positive={data.macro.positive} negative={data.macro.negative} collapsible={isMobile} />
+                      <AxisCard title="Industry" icon="🏭" positive={data.industry.positive} negative={data.industry.negative} collapsible={isMobile} />
+                      <AxisCard title="Stock" icon="📈" positive={data.stock.positive} negative={data.stock.negative} collapsible={isMobile} />
+                    </div>
+                    <UpcomingEvents events={data.events} />
+                  </div>
                 )}
-              </div>
-              <Button
-                size="sm"
-                variant={ga ? "outline" : "default"}
-                onClick={() => refreshGemini(true)}
-                disabled={geminiLoading}
-                className="text-xs h-7 px-3"
-              >
-                {geminiLoading ? "Gemini 분석 중..." : ga ? "Refresh (Gemini)" : "▶ AI 분석 실행"}
-              </Button>
-            </div>
-
-            {/* Content or empty state */}
-            {geminiLoading && !ga && !MOCK_DATA[selectedTicker] ? (
-              <div className="space-y-3">
-                <SectionSkeleton label="AI 분석 중..." height="h-20" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <SectionSkeleton label="Macro" />
-                  <SectionSkeleton label="Industry" />
-                  <SectionSkeleton label="Stock" />
-                </div>
-              </div>
-            ) : !ga && !MOCK_DATA[selectedTicker] ? (
-              <div className="py-8 text-center">
-                <p className="text-sm text-slate-400 dark:text-zinc-500">위 버튼을 눌러 Gemini AI 분석을 실행하세요</p>
-                <p className="text-[10px] text-slate-300 dark:text-zinc-600 mt-1">목표가 · 투자 판단 · AI 요약 · 3축 분석 · 예정 이벤트</p>
-              </div>
-            ) : (
-              <>
-                {/* Target Price */}
-                <TargetPriceCard
-                  currentPrice={quotes[selectedTicker]?.price ?? 0}
-                  currency={data.currency}
-                  liveTarget={liveTarget}
-                  liveTargetLoading={targetLoading}
-                  lastFetched={targetLastFetched}
-                  error={targetError}
-                  onRefresh={refreshTarget}
-                  macroScore={data.macro.score}
-                  industryScore={data.industry.score}
-                  stockScore={data.stock.score}
-                />
-
-                {/* Verdict */}
-                <VerdictCard
-                  verdict={data.verdict.verdict}
-                  confidence={data.verdict.confidence}
-                  summary={data.verdict.summary}
-                />
-
-                {/* AI Summary */}
-                <AISummaryCard
-                  ticker={selectedTicker}
-                  sentiment={data.aiSummary.sentiment}
-                  summary={data.aiSummary.summary}
-                  updatedAt={ga?.queryTime ? new Date(ga.queryTime).toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }) + " KST" : ""}
-                />
-
-                {/* 3-Axis Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <AxisCard title="Macro" icon="🌍" positive={data.macro.positive} negative={data.macro.negative} collapsible={isMobile} />
-                  <AxisCard title="Industry" icon="🏭" positive={data.industry.positive} negative={data.industry.negative} collapsible={isMobile} />
-                  <AxisCard title="Stock" icon="📈" positive={data.stock.positive} negative={data.stock.negative} collapsible={isMobile} />
-                </div>
-
-                {/* Upcoming Events */}
-                <UpcomingEvents events={data.events} />
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* News Timeline — live + mock merged, positive/negative split */}
         <NewsTimeline ticker={selectedTicker} tickerName={data.name} mockItems={[]} />

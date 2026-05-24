@@ -25,8 +25,7 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
   useEffect(() => {
     if (allDone) {
       setShowComplete(true);
-      const timer = setTimeout(() => setShowComplete(false), 2000);
-      return () => clearTimeout(timer);
+      // Don't auto-hide — stay visible
     }
   }, [allDone]);
 
@@ -39,7 +38,7 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
   }, [allAutoDone]);
 
   // Hide completely after done animation
-  if (allDone && !showComplete) return null;
+  // Always show — never auto-hide
 
   const doneCount = steps.filter((s) => s.done).length;
 
