@@ -19,15 +19,16 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
   const manualSteps = steps.filter((s) => s.auto === false);
   const allAutoDone = autoSteps.every((s) => s.done);
   const allDone = steps.every((s) => s.done);
+  const allManualDone = manualSteps.every((s) => s.done);
   const [showComplete, setShowComplete] = useState(false);
 
   useEffect(() => {
-    if (allAutoDone) {
+    if (allDone) {
       setShowComplete(true);
-      const timer = setTimeout(() => setShowComplete(false), 3000);
+      const timer = setTimeout(() => setShowComplete(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [allAutoDone]);
+  }, [allDone]);
 
   useEffect(() => {
     if (allAutoDone) return;
@@ -38,21 +39,23 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
   }, [allAutoDone]);
 
   // Hide completely after done animation
-  if (allAutoDone && !showComplete) return null;
+  if (allDone && !showComplete) return null;
 
   const doneCount = steps.filter((s) => s.done).length;
 
   return (
     <Card className={`transition-all duration-500 ${
-      allAutoDone
+      allDone
         ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20"
-        : "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
+        : allAutoDone
+          ? "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20"
+          : "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
     }`}>
       <CardContent className="py-3">
         <div className="flex items-center gap-3">
           {/* Spinner or checkmark */}
           <div className="relative h-5 w-5 shrink-0">
-            {allAutoDone ? (
+            {allDone ? (
               <span className="text-green-500 text-lg">✓</span>
             ) : (
               <>
@@ -64,8 +67,8 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
 
           <div className="flex-1">
             {/* Title */}
-            <p className={`text-sm font-medium ${allAutoDone ? "text-green-700 dark:text-green-300" : "text-blue-700 dark:text-blue-300"}`}>
-              {allAutoDone ? "자동 로딩 완료! (AI 분석/목표가는 버튼을 눌러주세요)" : `데이터 로딩 중${dots}`}
+            <p className={`text-sm font-medium ${allDone ? "text-green-700 dark:text-green-300" : allAutoDone ? "text-amber-700 dark:text-amber-300" : "text-blue-700 dark:text-blue-300"}`}>
+              {allDone ? "모든 데이터 로딩 완료!" : allAutoDone ? "자동 로딩 완료 — AI 분석/목표가는 버튼을 눌러주세요" : `데이터 로딩 중${dots}`}
             </p>
 
             {/* Step checkboxes - grouped */}
@@ -101,8 +104,8 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
           </div>
 
           {/* Progress count */}
-          <span className={`text-[10px] shrink-0 ${allAutoDone ? "text-green-400" : "text-blue-400 dark:text-blue-600"}`}>
-            {autoSteps.filter((s) => s.done).length}/{autoSteps.length} auto
+          <span className={`text-[10px] shrink-0 ${allDone ? "text-green-400" : "text-blue-400 dark:text-blue-600"}`}>
+            {doneCount}/{steps.length}
           </span>
         </div>
       </CardContent>
