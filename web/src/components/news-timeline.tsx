@@ -100,8 +100,9 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [loading, setLoading] = useState(false);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [tab, setTab] = useState<Tab>("all");
-  const [sortMode, setSortMode] = useState<"latest" | "major">("latest");
   const [langFilter, setLangFilter] = useState<"all" | "ko" | "en">("all");
+  const [sourceFilter, setSourceFilter] = useState<Set<string>>(new Set());
+  const [showSourceFilter, setShowSourceFilter] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const tz = useTZStore((s) => s.tz);
@@ -140,21 +141,12 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
     return () => clearInterval(interval);
   }, [fetchNews]);
 
-  const MAJOR_SOURCES = [
-    "reuters", "bloomberg", "wsj", "ft", "cnbc", "associated press", "nytimes",
-    "연합뉴스", "한경", "매일경제", "조선비즈", "한국경제", "서울경제",
-    "investing.com", "seeking alpha", "barron", "marketwatch",
-  ];
-
   const langFiltered = langFilter === "all" ? news : news.filter((n: any) => n.lang === langFilter);
-  const allNews = [...langFiltered].sort((a, b) => {
-    if (sortMode === "major") {
-      const isMajor = (s: string) => MAJOR_SOURCES.some((m) => s.toLowerCase().includes(m)) ? 0 : 1;
-      const w = isMajor(a.source) - isMajor(b.source);
-      if (w !== 0) return w;
-    }
-    return toMs(b.time) - toMs(a.time);
-  });
+  const sourceFiltered = sourceFilter.size === 0 ? langFiltered : langFiltered.filter((n) => sourceFilter.has(n.source));
+  const allNews = [...sourceFiltered].sort((a, b) => toMs(b.time) - toMs(a.time));
+
+  // Collect unique sources for filter
+  const allSources = [...new Set(news.map((n) => n.source))].sort();
 
   const filtered = tab === "all" ? allNews : allNews.filter((n) => n.sentiment === tab);
 
@@ -224,21 +216,49 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
                 </button>
               ))}
             </div>
-            <div className="flex">
-            {([["latest", "최신순"], ["major", "주요매체순"]] as const).map(([key, label], idx) => (
+            <div className="relative">
               <button
-                key={key}
-                onClick={() => setSortMode(key)}
-                className={`px-2 py-0.5 text-[11px] border transition-colors cursor-pointer ${
-                  sortMode === key
+                onClick={() => setShowSourceFilter((s) => !s)}
+                className={`px-2 py-0.5 text-[11px] border rounded-md transition-colors cursor-pointer ${
+                  sourceFilter.size > 0
                     ? "bg-slate-900 text-white border-slate-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
-                    : "bg-transparent text-slate-400 dark:text-zinc-500 border-slate-200 dark:border-zinc-700 opacity-50 hover:opacity-100"
-                } ${idx === 0 ? "rounded-l-md border-r-0" : "rounded-r-md"}`}
+                    : "bg-transparent text-slate-400 dark:text-zinc-500 border-slate-200 dark:border-zinc-700 hover:opacity-100"
+                }`}
               >
-                {label}
+                매체 {sourceFilter.size > 0 ? `(${sourceFilter.size})` : "▾"}
               </button>
-            ))}
-          </div>
+              {showSourceFilter && (
+                <div className="absolute right-0 top-7 z-20 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg p-2 w-48 max-h-60 overflow-y-auto">
+                  <button
+                    onClick={() => { setSourceFilter(new Set()); setShowSourceFilter(false); }}
+                    className="w-full text-left text-[11px] text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 px-2 py-1 mb-1 cursor-pointer"
+                  >
+                    전체 (필터 초기화)
+                  </button>
+                  {allSources.map((src) => (
+                    <label key={src} className="flex items-center gap-2 px-2 py-1 text-[11px] text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sourceFilter.has(src)}
+                        onChange={() => {
+                          const next = new Set(sourceFilter);
+                          if (next.has(src)) next.delete(src); else next.add(src);
+                          setSourceFilter(next);
+                        }}
+                        className="w-3 h-3 rounded"
+                      />
+                      {src}
+                    </label>
+                  ))}
+                  <button
+                    onClick={() => setShowSourceFilter(false)}
+                    className="w-full text-center text-[10px] text-slate-400 dark:text-zinc-500 mt-1 py-1 cursor-pointer hover:text-slate-600"
+                  >
+                    닫기
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>}
       </CardHeader>
