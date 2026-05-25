@@ -67,7 +67,7 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
           <div className="flex-1">
             {/* Title */}
             <p className={`text-sm font-medium ${allDone ? "text-green-700 dark:text-green-300" : allAutoDone ? "text-amber-700 dark:text-amber-300" : "text-blue-700 dark:text-blue-300"}`}>
-              {allDone ? "모든 데이터 로딩 완료!" : allAutoDone ? "자동 로딩 완료 — AI 분석/목표가는 버튼을 눌러주세요" : `데이터 로딩 중${dots}`}
+              {allDone ? "모든 데이터 로딩 완료!" : allAutoDone ? "실시간 데이터 완료 — AI 분석은 자동 로딩 중이거나 Refresh를 눌러주세요" : `데이터 로딩 중${dots}`}
             </p>
 
             {/* Step checkboxes - grouped */}
@@ -86,7 +86,7 @@ export function LoadingBanner({ steps }: LoadingStateProps) {
                 </span>
               ))}
               <span className="text-slate-200 dark:text-zinc-700 mx-0.5">|</span>
-              <span className="text-[9px] text-slate-400 dark:text-zinc-500">수동 (각 항목의 버튼을 눌러주세요)</span>
+              <span className="text-[9px] text-slate-400 dark:text-zinc-500">Gemini (최초 진입 시 자동 1회, 이후 새로고침 또는 Refresh 버튼)</span>
               {manualSteps.map((step) => (
                 <span key={step.label} className="flex items-center gap-1 text-[11px]">
                   <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded border text-[9px] ${
