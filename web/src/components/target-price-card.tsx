@@ -97,7 +97,7 @@ export function TargetPriceCard({
           <span className="text-slate-300 dark:text-zinc-600 text-lg font-light">=</span>
 
           {liveTargetLoading ? (
-            <span className="text-xs text-slate-400 animate-pulse">Analyzing...</span>
+            <span className="text-xs text-slate-400 flex items-center gap-1"><svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75"/></svg>분석 중...</span>
           ) : targetMean > 0 ? (
             <>
               <div className="text-center">
@@ -148,7 +148,7 @@ export function TargetPriceCard({
             disabled={liveTargetLoading}
             className="h-7 text-[10px] px-3"
           >
-            {liveTargetLoading ? "..." : "Refresh (Gemini)"}
+            {liveTargetLoading ? <><svg className="inline h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75"/></svg>로딩 중</> : "Refresh (Gemini)"}
           </Button>
         </div>
 

@@ -436,7 +436,7 @@ export default function HomePage() {
                 disabled={geminiLoading}
                 className="text-[10px] h-7 px-3"
               >
-                {geminiLoading ? "Gemini 분석 중..." : ga ? "Refresh" : "▶ AI 분석 실행"}
+                {geminiLoading ? <><svg className="inline h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75"/></svg>분석 중</> : ga ? "Refresh" : "▶ AI 분석 실행"}
               </Button>
             </div>
 

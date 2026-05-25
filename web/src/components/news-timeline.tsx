@@ -165,7 +165,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               </span>
             )}
             <Button variant="outline" size="sm" onClick={fetchNews} disabled={loading} className="h-7 text-[10px] px-3">
-              {loading ? "..." : "Refresh"}
+              {loading ? <><svg className="inline h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75"/></svg>로딩 중</> : "Refresh"}
             </Button>
           </div>
         </div>
