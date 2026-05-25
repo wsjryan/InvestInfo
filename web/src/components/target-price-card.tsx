@@ -142,11 +142,11 @@ export function TargetPriceCard({
 
           {/* Refresh button */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => onRefresh(true)}
             disabled={liveTargetLoading}
-            className="h-7 text-[10px] px-2 ml-1"
+            className="h-7 text-[10px] px-3"
           >
             {liveTargetLoading ? "..." : "Refresh (Gemini)"}
           </Button>

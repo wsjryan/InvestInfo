@@ -434,7 +434,7 @@ export default function HomePage() {
                 variant={ga ? "outline" : "default"}
                 onClick={() => { refreshGemini(true); setAiCollapsed(false); }}
                 disabled={geminiLoading}
-                className="text-xs h-7 px-3"
+                className="text-[10px] h-7 px-3"
               >
                 {geminiLoading ? "Gemini 분석 중..." : ga ? "Refresh" : "▶ AI 분석 실행"}
               </Button>

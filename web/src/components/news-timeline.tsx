@@ -164,7 +164,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
                 {lastFetched.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={fetchNews} disabled={loading} className="h-6 text-[10px] px-2">
+            <Button variant="outline" size="sm" onClick={fetchNews} disabled={loading} className="h-7 text-[10px] px-3">
               {loading ? "..." : "Refresh"}
             </Button>
           </div>
