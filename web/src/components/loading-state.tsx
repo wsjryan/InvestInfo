@@ -118,10 +118,10 @@ export function SectionSkeleton({ label, height = "h-32" }: { label: string; hei
     <Card>
       <CardContent className={`${height} flex items-center justify-center`}>
         <div className="text-center">
-          <div className="relative h-5 w-5 mx-auto mb-2">
-            <div className="absolute inset-0 rounded-full border-2 border-slate-200 dark:border-zinc-700" />
-            <div className="absolute inset-0 rounded-full border-2 border-slate-400 dark:border-zinc-500 border-t-transparent animate-spin" />
-          </div>
+          <svg className="h-6 w-6 mx-auto mb-2" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="text-slate-200 dark:text-zinc-700" />
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-blue-500 dark:text-blue-400" />
+          </svg>
           <p className="text-xs text-slate-400 dark:text-zinc-500">{label}</p>
         </div>
       </CardContent>
