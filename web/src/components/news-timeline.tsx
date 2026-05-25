@@ -90,6 +90,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [tab, setTab] = useState<Tab>("all");
   const [sortMode, setSortMode] = useState<"latest" | "major">("latest");
   const [expanded, setExpanded] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
@@ -153,7 +154,10 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-sm font-semibold">News</CardTitle>
+          <button onClick={() => setCollapsed((c) => !c)} className="flex items-center gap-1 cursor-pointer hover:opacity-70">
+            <span className="text-[10px] text-slate-400">{collapsed ? "▶" : "▼"}</span>
+            <CardTitle className="text-sm font-semibold">News</CardTitle>
+          </button>
           <div className="flex items-center gap-2">
             {lastFetched && (
               <span className="text-[10px] text-slate-300 dark:text-zinc-600">
@@ -166,7 +170,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
           </div>
         </div>
         {/* Tabs + Sort toggle */}
-        <div className="flex items-center justify-between mt-2 gap-2">
+        {!collapsed && <div className="flex items-center justify-between mt-2 gap-2">
           <div className="flex gap-1">
             {tabs.map((t) => (
               <button
@@ -197,9 +201,9 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               </button>
             ))}
           </div>
-        </div>
+        </div>}
       </CardHeader>
-      <CardContent>
+      {!collapsed && <CardContent>
         {loading && news.length === 0 ? (
           <div className="space-y-3 py-2">
             {[1, 2, 3].map((i) => (
@@ -259,7 +263,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
         <div className="text-[9px] text-slate-300 dark:text-zinc-600 text-right mt-2">
           Google News · Auto 2min
         </div>
-      </CardContent>
+      </CardContent>}
     </Card>
   );
 }
