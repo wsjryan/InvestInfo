@@ -60,15 +60,21 @@ export function useGeminiAnalysis(symbol: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // On ticker change: show cache if available, don't auto-fetch
+  // On ticker change: show cache if available, fetch if no cache
   useEffect(() => {
     const cached = analysisCache[symbol];
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
       setData(cached.data);
+      setLoading(false);
     } else {
       setData(null);
+      // Auto-fetch on first load (no cache)
+      setLoading(true);
+      fetchOne(symbol).then((result) => {
+        setData(result);
+        setLoading(false);
+      });
     }
-    setLoading(false);
   }, [symbol]);
 
   const refresh = useCallback((forceRefresh = false) => {
