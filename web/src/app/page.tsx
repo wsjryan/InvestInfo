@@ -412,8 +412,8 @@ export default function HomePage() {
         <StockChart symbol={selectedTicker} />
 
         {/* ═══ AI Analysis Block (Gemini) — collapsible ═══ */}
-        <Card className="border border-slate-200 dark:border-zinc-800">
-          <CardContent className="py-2">
+        <Card>
+          <CardContent className="py-3">
             {/* Header: toggle + run button */}
             <div className="flex items-center justify-between">
               <button
