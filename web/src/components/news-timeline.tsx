@@ -14,6 +14,7 @@ export interface NewsItem {
   time: string;
   sentiment: "positive" | "negative" | "neutral";
   axis: "macro" | "industry" | "stock";
+  lang?: "ko" | "en";
 }
 
 const POSITIVE_KW = [
@@ -39,12 +40,23 @@ function classifySentiment(title: string): "positive" | "negative" | "neutral" {
   return "neutral";
 }
 
-const TICKER_QUERIES: Record<string, string> = {
-  "005930.KS": "삼성전자", "000660.KS": "SK하이닉스", GOOGL: "Google Alphabet",
-  AAPL: "Apple stock", NVDA: "NVIDIA", MSFT: "Microsoft", TSLA: "Tesla",
-  META: "Meta Facebook", AMZN: "Amazon", MU: "Micron stock", AMD: "AMD stock",
-  AVGO: "Broadcom", TSM: "TSMC", NFLX: "Netflix stock",
-  "035420.KS": "네이버", "035720.KS": "카카오",
+const TICKER_QUERIES: Record<string, { ko: string; en: string }> = {
+  "005930.KS": { ko: "삼성전자", en: "Samsung Electronics stock" },
+  "000660.KS": { ko: "SK하이닉스", en: "SK Hynix stock" },
+  GOOGL: { ko: "구글 알파벳 주식", en: "Google Alphabet stock" },
+  AAPL: { ko: "애플 주식", en: "Apple stock" },
+  NVDA: { ko: "엔비디아 주식", en: "NVIDIA stock" },
+  MSFT: { ko: "마이크로소프트 주식", en: "Microsoft stock" },
+  TSLA: { ko: "테슬라 주식", en: "Tesla stock" },
+  META: { ko: "메타 페이스북 주식", en: "Meta Facebook stock" },
+  AMZN: { ko: "아마존 주식", en: "Amazon stock" },
+  MU: { ko: "마이크론 주식", en: "Micron stock" },
+  AMD: { ko: "AMD 주식", en: "AMD stock" },
+  AVGO: { ko: "브로드컴 주식", en: "Broadcom stock" },
+  TSM: { ko: "TSMC 주식", en: "TSMC stock" },
+  NFLX: { ko: "넷플릭스 주식", en: "Netflix stock" },
+  "035420.KS": { ko: "네이버", en: "Naver stock" },
+  "035720.KS": { ko: "카카오", en: "Kakao stock" },
 };
 
 type Tab = "all" | "positive" | "negative" | "neutral";
@@ -89,28 +101,37 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [sortMode, setSortMode] = useState<"latest" | "major">("latest");
+  const [langFilter, setLangFilter] = useState<"all" | "ko" | "en">("all");
   const [expanded, setExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const tz = useTZStore((s) => s.tz);
 
   const fetchNews = useCallback(() => {
-    const query = TICKER_QUERIES[ticker] ?? tickerName;
+    const queries = TICKER_QUERIES[ticker] ?? { ko: tickerName, en: tickerName };
     setLoading(true);
-    fetch(`/api/news?q=${encodeURIComponent(query)}&_t=${Date.now()}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const classified = data.map((n: any) => ({
-            ...n,
-            sentiment: classifySentiment(n.title),
-            axis: "stock" as const,
-          }));
-          setNews(classified);
-          setLastFetched(new Date());
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    Promise.all([
+      fetch(`/api/news?q=${encodeURIComponent(queries.ko)}&lang=ko&_t=${Date.now()}`).then((r) => r.json()).catch(() => []),
+      fetch(`/api/news?q=${encodeURIComponent(queries.en)}&lang=en&_t=${Date.now()}`).then((r) => r.json()).catch(() => []),
+    ]).then(([koData, enData]) => {
+      const koNews = (Array.isArray(koData) ? koData : []).map((n: any) => ({ ...n, lang: "ko" }));
+      const enNews = (Array.isArray(enData) ? enData : []).map((n: any) => ({ ...n, lang: "en" }));
+      // Deduplicate
+      const seen = new Set<string>();
+      const merged = [...koNews, ...enNews].filter((n) => {
+        const key = n.title.slice(0, 40).toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      const classified = merged.map((n: any) => ({
+        ...n,
+        sentiment: classifySentiment(n.title),
+        axis: "stock" as const,
+      }));
+      setNews(classified);
+      setLastFetched(new Date());
+      setLoading(false);
+    });
   }, [ticker, tickerName]);
 
   useEffect(() => {
@@ -125,7 +146,8 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
     "investing.com", "seeking alpha", "barron", "marketwatch",
   ];
 
-  const allNews = [...news].sort((a, b) => {
+  const langFiltered = langFilter === "all" ? news : news.filter((n: any) => n.lang === langFilter);
+  const allNews = [...langFiltered].sort((a, b) => {
     if (sortMode === "major") {
       const isMajor = (s: string) => MAJOR_SOURCES.some((m) => s.toLowerCase().includes(m)) ? 0 : 1;
       const w = isMajor(a.source) - isMajor(b.source);
@@ -186,7 +208,23 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
               </button>
             ))}
           </div>
-          <div className="flex shrink-0">
+          <div className="flex shrink-0 gap-2">
+            <div className="flex">
+              {([["all", "전체"], ["ko", "국내"], ["en", "해외"]] as const).map(([key, label], idx) => (
+                <button
+                  key={key}
+                  onClick={() => setLangFilter(key)}
+                  className={`px-2 py-0.5 text-[11px] border transition-colors cursor-pointer ${
+                    langFilter === key
+                      ? "bg-slate-900 text-white border-slate-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
+                      : "bg-transparent text-slate-400 dark:text-zinc-500 border-slate-200 dark:border-zinc-700 opacity-50 hover:opacity-100"
+                  } ${idx === 0 ? "rounded-l-md border-r-0" : idx === 2 ? "rounded-r-md" : "border-r-0"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex">
             {([["latest", "최신순"], ["major", "주요매체순"]] as const).map(([key, label], idx) => (
               <button
                 key={key}
@@ -200,6 +238,7 @@ export function NewsTimeline({ ticker, tickerName, mockItems }: NewsTimelineProp
                 {label}
               </button>
             ))}
+          </div>
           </div>
         </div>}
       </CardHeader>
