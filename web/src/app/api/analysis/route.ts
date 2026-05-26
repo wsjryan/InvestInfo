@@ -74,11 +74,12 @@ Return ONLY JSON:
 }
 
 Rules:
+- IMPORTANT: You are analyzing ONLY "${name}" (${symbol}). All factors, verdict, summary must be about THIS specific stock, not other companies.
 - Each axis: 2-4 factors. sourceUrl = Google News search for actual article.
 - Target prices realistic vs current price (±30%). KRW for .KS, USD for US.
-- reasoning: [매크로]→[산업]→[종목]→[총평] sections.
-- analystSources: 3-5 firms with reasons. URLs = Google News search, NOT homepages.
-- events: 3-5 items within 30 days.
+- reasoning: [매크로]→[산업]→[종목]→[총평] sections. 종목 section must focus on ${name} specifically.
+- analystSources: 3-5 firms with reasons about ${name}. URLs = Google News search, NOT homepages.
+- events: 3-5 items within 30 days relevant to ${name}.
 - Be balanced.`
             }]
           }],
