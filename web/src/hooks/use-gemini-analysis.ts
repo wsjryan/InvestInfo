@@ -62,28 +62,35 @@ export function useGeminiAnalysis(symbol: string) {
 
   // On ticker change: show cache if available, fetch if no cache
   useEffect(() => {
+    let cancelled = false;
     const cached = analysisCache[symbol];
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
       setData(cached.data);
       setLoading(false);
     } else {
       setData(null);
-      // Auto-fetch on first load (no cache)
       setLoading(true);
       fetchOne(symbol).then((result) => {
-        setData(result);
-        setLoading(false);
+        if (!cancelled) {
+          setData(result);
+          setLoading(false);
+        }
       });
     }
+    return () => { cancelled = true; };
   }, [symbol]);
 
   const refresh = useCallback((forceRefresh = false) => {
+    const currentSymbol = symbol;
     setLoading(true);
     setError(null);
-    fetchOne(symbol, forceRefresh).then((result) => {
-      if (result) setData(result);
-      else setError("Failed to fetch");
-      setLoading(false);
+    fetchOne(currentSymbol, forceRefresh).then((result) => {
+      // Only update if still on same ticker
+      if (currentSymbol === symbol) {
+        if (result) setData(result);
+        else setError("Failed to fetch");
+        setLoading(false);
+      }
     });
   }, [symbol]);
 
