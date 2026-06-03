@@ -7,3 +7,6 @@ node_modules
 .vercel
 securities/
 .env*
+
+# Claude Code local settings
+.claude/
