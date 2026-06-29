@@ -10,3 +10,7 @@ securities/
 
 # Claude Code local settings
 .claude/
+
+# Local secrets (API keys, OAuth creds) — never commit
+.secrets/
+OAuth/

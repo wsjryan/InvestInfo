@@ -17,6 +17,8 @@ import { TickerLogo } from "@/components/ticker-logo";
 import { LoadingBanner, SectionSkeleton } from "@/components/loading-state";
 import { useTargetPrice } from "@/hooks/use-target-price";
 import { useGeminiAnalysis, usePrefetchAnalysis } from "@/hooks/use-gemini-analysis";
+import { usePriceMove } from "@/hooks/use-price-move";
+import { TodayMoveCard } from "@/components/today-move-card";
 import { usePrefetchTargets } from "@/hooks/use-target-price";
 import { UpcomingEvents, type UpcomingEvent } from "@/components/upcoming-events";
 import { VerdictCard, type Verdict } from "@/components/verdict-card";
@@ -305,6 +307,7 @@ export default function HomePage() {
     events: [],
   };
   const { data: geminiAnalysis, loading: geminiLoading, refresh: refreshGemini } = useGeminiAnalysis(selectedTicker);
+  const { data: priceMove, loading: moveLoading, error: moveError, refresh: refreshMove } = usePriceMove(selectedTicker);
   // Merge: gemini > mock > fallback (gemini takes priority when available)
   const mockData = MOCK_DATA[selectedTicker];
   const ga = geminiAnalysis;
@@ -432,7 +435,7 @@ export default function HomePage() {
               <Button
                 size="sm"
                 variant={ga ? "outline" : "default"}
-                onClick={() => { refreshGemini(true); setAiCollapsed(false); }}
+                onClick={() => { refreshGemini(true); refreshMove(true); setAiCollapsed(false); }}
                 disabled={geminiLoading}
                 className="text-[10px] h-7 px-3"
               >
@@ -443,6 +446,17 @@ export default function HomePage() {
             {/* Content */}
             {!aiCollapsed && (
               <>
+                {/* Today's move reason — refreshed alongside AI analysis */}
+                {(priceMove || moveLoading || moveError) && (
+                  <div className="mt-4">
+                    <TodayMoveCard
+                      data={priceMove}
+                      loading={moveLoading}
+                      error={moveError}
+                      onRetry={() => refreshMove(true)}
+                    />
+                  </div>
+                )}
                 {geminiLoading && !ga ? (
                   <div className="space-y-3 mt-4">
                     <SectionSkeleton label="AI 분석 중..." height="h-20" />
